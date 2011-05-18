@@ -39,7 +39,7 @@
     <!-- Versions of XWiki dependencies used in Core modules -->
     <platform.tool.xar-handler.version>1.9</platform.tool.xar-handler.version>
     <platform.tool.xar-plugin.version>1.14</platform.tool.xar-plugin.version>
-    <clirr.previous.version>2.7.1</clirr.previous.version>
+    <clirr.previous.version>2.7.2</clirr.previous.version>
   </properties>
   <scm>
     <connection>scm:git:git://github.com/xwiki/xwiki-platform.git</connection>
@@ -227,11 +227,7 @@
                      exclude it for the moment. See http://bit.ly/c5Jnho Remove this exclude when the problem is fixed
                      in CLIRR. -->
                 <exclude>org/xwiki/officeimporter/openoffice/OpenOfficeManager$ManagerState</exclude>
-                <!-- To be removed when we release 2.7.2 -->
-                <exclude>org/xwiki/url/standard/StandardURLConfiguration</exclude>
-                <exclude>org/xwiki/rendering/scaffolding/RenderingTestCase</exclude>
-                <exclude>com/xpn/xwiki/pdf/api/PdfExport</exclude>
-                <exclude>com/xpn/xwiki/pdf/api/PdfExport$ExportType</exclude>
+                <!-- To be removed when we release 2.7.3 -->
               </excludes>
             </configuration>
           </plugin>
