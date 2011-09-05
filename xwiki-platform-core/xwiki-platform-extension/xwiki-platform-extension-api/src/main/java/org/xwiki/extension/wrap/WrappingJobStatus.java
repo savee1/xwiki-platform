@@ -20,13 +20,13 @@
 package org.xwiki.extension.wrap;
 
 import java.util.List;
-import java.util.Queue;
 
 import org.xwiki.extension.job.JobProgress;
 import org.xwiki.extension.job.JobStatus;
 import org.xwiki.extension.job.Request;
+import org.xwiki.logging.LogLevel;
+import org.xwiki.logging.LogQueue;
 import org.xwiki.logging.event.LogEvent;
-import org.xwiki.logging.event.LogLevel;
 
 /**
  * Wrap a job status.
@@ -76,7 +76,7 @@ public class WrappingJobStatus implements JobStatus
      * @see org.xwiki.extension.job.JobStatus#getLog()
      */
     @Override
-    public Queue<LogEvent> getLog()
+    public LogQueue getLog()
     {
         return this.status.getLog();
     }
@@ -84,7 +84,7 @@ public class WrappingJobStatus implements JobStatus
     /**
      * {@inheritDoc}
      * 
-     * @see org.xwiki.extension.job.JobStatus#getLog(org.xwiki.logging.event.LogLevel)
+     * @see org.xwiki.extension.job.JobStatus#getLog(org.xwiki.logging.LogLevel)
      */
     @Override
     public List<LogEvent> getLog(LogLevel level)

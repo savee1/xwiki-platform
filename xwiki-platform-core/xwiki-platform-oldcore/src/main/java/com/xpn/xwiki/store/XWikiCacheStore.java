@@ -24,9 +24,8 @@ package com.xpn.xwiki.store;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
@@ -59,7 +58,7 @@ import com.xpn.xwiki.web.Utils;
  */
 public class XWikiCacheStore implements XWikiCacheStoreInterface, EventListener
 {
-    private static final Log log = LogFactory.getLog(XWikiCacheStore.class);
+    private static final Logger LOG = LoggerFactory.getLogger(XWikiCacheStore.class);
 
     private XWikiStoreInterface store;
 
@@ -256,9 +255,15 @@ public class XWikiCacheStore implements XWikiCacheStoreInterface, EventListener
 
     public String getKey(String wiki, String fullName, String language)
     {
-        String key = (wiki == null ? "" : wiki) + ":" + fullName;
+        final String key = (wiki == null ? "" : wiki) + ":" + fullName;
 
-        if (StringUtils.isEmpty(language)) {
+        // This is copied strait from XWikiDocument#getId()
+        // It is important to note that a document called "Main.WebHome:es" will have
+        // the same cache key as the Spanish version of "Main.WebHome".
+        // This is a problem which must be fixed here and in XWikiDocument#getId()
+        // simultaneously.
+        // See: http://jira.xwiki.org/jira/browse/XWIKI-6169
+        if ((language == null) || language.trim().equals("")) {
             return key;
         } else {
             return key + ":" + language;
@@ -268,16 +273,13 @@ public class XWikiCacheStore implements XWikiCacheStoreInterface, EventListener
     public XWikiDocument loadXWikiDoc(XWikiDocument doc, XWikiContext context) throws XWikiException
     {
         String key = getKey(doc, context);
-        if (log.isDebugEnabled()) {
-            log.debug("Cache: begin for doc " + key + " in cache");
-        }
+
+        LOG.debug("Cache: begin for doc {} in cache", key);
 
         // Make sure cache is initialized
         initCache(context);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Cache: Trying to get doc " + key + " from cache");
-        }
+        LOG.debug("Cache: Trying to get doc {} from cache", key);
 
         XWikiDocument cachedoc = getCache().get(key);
 
@@ -285,29 +287,22 @@ public class XWikiCacheStore implements XWikiCacheStoreInterface, EventListener
             doc = cachedoc;
             doc.setFromCache(true);
 
-            if (log.isDebugEnabled()) {
-                log.debug("Cache: got doc " + key + " from cache");
-            }
+            LOG.debug("Cache: got doc {} from cache", key);
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Cache: Trying to get doc " + key + " for real");
-            }
+            LOG.debug("Cache: Trying to get doc {} from persistent storage", key);
 
             doc = this.store.loadXWikiDoc(doc, context);
             doc.setStore(this.store);
 
-            if (log.isDebugEnabled()) {
-                log.debug("Cache: Got doc " + key + " for real");
-                log.debug("Cache: put doc " + key + " in cache");
-            }
+            LOG.debug("Cache: Got doc {} from storage", key);
 
             getCache().set(key, doc);
             getPageExistCache().set(key, new Boolean(!doc.isNew()));
+
+            LOG.debug("Cache: put doc {} in cache", key);
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Cache: end for doc " + key + " in cache");
-        }
+        LOG.debug("Cache: end for doc {} in cache", key);
 
         return doc;
     }

@@ -139,12 +139,12 @@
 #-# The default local cache implementation is JBoss Cache.
 # cache.defaultLocalCache=jbosscache/local
 
-#----------------------------------------------------------------------------------
-# Settings for the OpenOffice server instance consumed by the OfficeImporter plugin
-#----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------
+# Settings for the OpenOffice server instance consumed by the OfficeImporter component
+#-------------------------------------------------------------------------------------
  
 #-# [Since 1.9M2]
-#-# Type of the openoffice server instance used by officeimporter plugin.
+#-# Type of the openoffice server instance used by officeimporter component.
 #-# 0 - Internally managed server instance. (Default)
 #-# 1 - Externally managed (local) server instance.
 # openoffice.serverType=0
@@ -321,6 +321,20 @@
 #-#   true : Enabled
 #-#   false: Disabled
 #-#
-#-# Default value is false
-# csrf.enabled = false
+#-# Default value is true
+# csrf.enabled = true
 
+#-------------------------------------------------------------------------------------
+# Extension Manager
+#-------------------------------------------------------------------------------------
+
+#-# [Since 2.5]
+#-# Repositories to use when downloading extensions.
+#-# 
+#-# The format is <id>:<type>:<url> where
+#-# * id can be anything as long as there is only one
+#-# * type is the type of the repository (maven, xwiki, etc.)
+#-# * url is thee URL or the root of the repository
+#-# 
+#-# The default is:
+# extension.repositories=maven-xwiki:maven:http://nexus.xwiki.org/nexus/content/groups/public
