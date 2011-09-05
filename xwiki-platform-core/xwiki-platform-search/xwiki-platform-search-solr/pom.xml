@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>xwiki-platform-search</artifactId>
+    <groupId>org.xwiki.platform</groupId>
+    <version>3.2-SNAPSHOT</version>
+  </parent>
+  <artifactId>xwiki-platform-search-solr</artifactId>
+  <name>XWiki Platform - Search - SOLR</name>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <platform.core.version>3.2-SNAPSHOT</platform.core.version>
+    <solr.version>3.3.0</solr.version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-search-api</artifactId>
+      <version>${platform.core.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-component-default</artifactId>
+      <version>${platform.core.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-script</artifactId>
+      <version>${platform.core.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-test</artifactId>
+      <version>${platform.core.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <artifactId>solr-solrj</artifactId>
+      <groupId>org.apache.solr</groupId>
+      <version>${solr.version}</version>
+    </dependency>
+    <dependency>
+      <artifactId>solr-core</artifactId>
+      <groupId>org.apache.solr</groupId>
+      <version>${solr.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-jdk14</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
