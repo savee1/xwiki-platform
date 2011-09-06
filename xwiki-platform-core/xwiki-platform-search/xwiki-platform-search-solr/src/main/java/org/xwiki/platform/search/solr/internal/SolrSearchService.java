@@ -39,7 +39,7 @@ public class SolrSearchService implements SearchService, EventListener
     @Inject
     private Logger logger;
 
-    private EmbeddedSolrServer solr;
+    private EmbeddedSolrServer solrServer;
 
     @Override
     public List<Event> getEvents()
@@ -50,16 +50,17 @@ public class SolrSearchService implements SearchService, EventListener
     @Override
     public String getName()
     {
-        return "Solr search service";
+        return "SOLR search service";
     }
 
     @Override
     public void onEvent(Event event, Object arg1, Object arg2)
     {
         try {
+            /* Initialize the SOLR backend using an embedded server */
             CoreContainer.Initializer initializer = new CoreContainer.Initializer();
             CoreContainer container = initializer.initialize();
-            solr = new EmbeddedSolrServer(container, "");
+            solrServer = new EmbeddedSolrServer(container, "");
 
             logger.info("SOLR initialized");
         } catch (Exception e) {

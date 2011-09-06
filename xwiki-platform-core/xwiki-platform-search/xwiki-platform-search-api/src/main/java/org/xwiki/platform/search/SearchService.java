@@ -24,5 +24,9 @@ import org.xwiki.component.annotation.ComponentRole;
 @ComponentRole
 public interface SearchService
 {
+    /*
+     * Here the exposed API could be the same of the one used for the Lucene Plugin {@link http://bit.ly/oJQGdG}
+     */
+
     String getBackend();
 }
