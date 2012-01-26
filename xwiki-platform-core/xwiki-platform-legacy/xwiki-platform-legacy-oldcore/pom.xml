@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.xwiki.platform</groupId>
     <artifactId>xwiki-platform-legacy</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.5-SNAPSHOT</version>
   </parent>
   <artifactId>xwiki-platform-legacy-oldcore</artifactId>
   <name>XWiki Platform - Legacy - Old Core</name>
@@ -41,6 +41,42 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-oldcore</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Version 1.1 of jackrabbit core needs to be uploaded to central repository. In addition there was a  POM
+         issue in version 1.0.1, see http://jira.codehaus.org/browse/MEV-453 -->
+    <!-- TODO: Version 1.4.2 is published in the central repo, can we use that? -->
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-core</artifactId>
+      <version>1.1-xwiki</version>
+    </dependency>
+    
+    <!-- There's no release of Graffito yet (http://incubator.apache.org/graffito/jcr-mapping/index.html) -->
+    <dependency>
+      <groupId>org.apache.portals</groupId>
+      <artifactId>graffito-jcr-mapping</artifactId>
+      <version>1.0-a1-amelentev-dev</version>
+    </dependency>
+    
+    <!-- VMA: I'm not sure if we have the right to distribute this jar. It's not on the central repository because
+         of licensing issues. -->
+    <!-- Sergiu: No, we cannot redistribute it. And we definitely shouldn't put it in our repo.
+         We can redistribute version 1.1, but we should make users approve their License Agreement.
+         Can we drop this completely? Why is it needed? -->
+    <!-- TODO: Version 1.1 is available, should we upgrade? -->
+    <dependency>
+      <groupId>javax.transaction</groupId>
+      <artifactId>jta</artifactId>
+      <version>1.0.1B</version>
+    </dependency>
+
+    <!-- See http://jira.codehaus.org/browse/MEV-488 -->
+    <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
+      <version>1.0</version>
     </dependency>
 
     <!-- Build tools -->
@@ -60,6 +96,13 @@
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-test</artifactId>
       <version>${commons.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -85,7 +128,20 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <versionRange>[1.6,)</versionRange>
+                    <goals>
+                      <goal>run</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -115,6 +171,25 @@
                 </weaveDependency>
               </weaveDependencies>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <configuration>
+              <target>
+                <concat destfile="${project.build.directory}/classes/META-INF/components.txt" append="true">
+                  <filelist dir="${basedir}/src/main/resources/META-INF/" files="components.txt" />
+                </concat>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

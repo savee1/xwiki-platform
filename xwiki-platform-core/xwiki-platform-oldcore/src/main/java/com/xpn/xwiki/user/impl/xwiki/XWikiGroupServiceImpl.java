@@ -16,20 +16,18 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
  */
-
 package com.xpn.xwiki.user.impl.xwiki;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
@@ -128,7 +126,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         }
     };
 
-    protected Cache<List<DocumentReference>> memberGroupsCache;
+    protected Cache<Collection<DocumentReference>> memberGroupsCache;
 
     /**
      * Used to convert a string into a proper Document Reference.
@@ -142,11 +140,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
     private EntityReferenceSerializer<String> localWikiEntityReferenceSerializer = Utils.getComponent(
         EntityReferenceSerializer.class, "local");
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#init(com.xpn.xwiki.XWiki, com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public synchronized void init(XWiki xwiki, XWikiContext context) throws XWikiException
     {
         initCache(context);
@@ -154,11 +148,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         Utils.getComponent(ObservationManager.class).addListener(this);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#initCache(com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public synchronized void initCache(XWikiContext context) throws XWikiException
     {
         int iCapacity = 100;
@@ -172,11 +162,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         initCache(iCapacity, context);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#initCache(int, com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public synchronized void initCache(int iCapacity, XWikiContext context) throws XWikiException
     {
         try {
@@ -193,11 +179,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#flushCache()
-     */
+    @Override
     public void flushCache()
     {
         if (this.memberGroupsCache != null) {
@@ -220,22 +202,13 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return (implicit == 1);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#listGroupsForUser(java.lang.String, com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public Collection<String> listGroupsForUser(String member, XWikiContext context) throws XWikiException
     {
         return getAllGroupsNamesForMember(member, -1, 0, context);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#addUserToGroup(java.lang.String, java.lang.String,
-     *      java.lang.String, com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public void addUserToGroup(String username, String database, String group, XWikiContext context)
         throws XWikiException
     {
@@ -246,7 +219,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
             initCache(context);
         }
 
-        List<DocumentReference> list = this.memberGroupsCache.get(key);
+        Collection<DocumentReference> list = this.memberGroupsCache.get(key);
 
         if (list == null) {
             list = new ArrayList<DocumentReference>();
@@ -322,12 +295,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return needUpdate;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#removeUserOrGroupFromAllGroups(java.lang.String, java.lang.String,
-     *      java.lang.String, com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public void removeUserOrGroupFromAllGroups(String memberWiki, String memberSpace, String memberName,
         XWikiContext context) throws XWikiException
     {
@@ -365,12 +333,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#listMemberForGroup(java.lang.String, com.xpn.xwiki.XWikiContext)
-     */
-    @Deprecated
+    @Override
     public List<String> listMemberForGroup(String group, XWikiContext context) throws XWikiException
     {
         List<String> list = new ArrayList<String>();
@@ -408,12 +371,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#listAllGroups(com.xpn.xwiki.XWikiContext)
-     */
-    @Deprecated
+    @Override
     public List<String> listAllGroups(XWikiContext context) throws XWikiException
     {
         if (context.getWiki().getHibernateStore() != null) {
@@ -424,32 +382,19 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         }
     }
 
-    /**
-     * currentMixedDocumentReferenceResolver {@inheritDoc}
-     * 
-     * @see org.xwiki.observation.EventListener#getName()
-     */
+    @Override
     public String getName()
     {
         return NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.observation.EventListener#getEvents()
-     */
+    @Override
     public List<Event> getEvents()
     {
         return EVENTS;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.observation.EventListener#onEvent(org.xwiki.observation.event.Event, java.lang.Object,
-     *      java.lang.Object)
-     */
+    @Override
     public void onEvent(Event event, Object source, Object data)
     {
         XWikiDocument document = (XWikiDocument) source;
@@ -461,24 +406,14 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#getAllMatchedUsers(java.lang.Object[][], boolean, int, int,
-     *      java.lang.Object[][], com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public List< ? > getAllMatchedUsers(Object[][] matchFields, boolean withdetails, int nb, int start,
         Object[][] order, XWikiContext context) throws XWikiException
     {
         return getAllMatchedUsersOrGroups(true, matchFields, withdetails, nb, start, order, context);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#getAllMatchedGroups(java.lang.Object[][], boolean, int, int,
-     *      java.lang.Object[][], com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public List< ? > getAllMatchedGroups(Object[][] matchFields, boolean withdetails, int nb, int start,
         Object[][] order, XWikiContext context) throws XWikiException
     {
@@ -637,7 +572,8 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         } else if (context.getWiki().getStore().getQueryManager().hasLanguage(Query.XPATH)) {
             // TODO : fully implement this methods for XPATH platform
             if ((matchFields != null && matchFields.length > 0) || withdetails) {
-                throw new NotImplementedException();
+                throw new UnsupportedOperationException(
+                    "The current storage engine does not support advanced group queries");
             }
 
             try {
@@ -691,23 +627,13 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return ((Number) list.get(0)).intValue();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#countAllMatchedUsers(java.lang.Object[][],
-     *      com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public int countAllMatchedUsers(Object[][] matchFields, XWikiContext context) throws XWikiException
     {
         return countAllMatchedUsersOrGroups(true, matchFields, context);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#countAllMatchedGroups(java.lang.Object[][],
-     *      com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public int countAllMatchedGroups(Object[][] matchFields, XWikiContext context) throws XWikiException
     {
         return countAllMatchedUsersOrGroups(false, matchFields, context);
@@ -756,12 +682,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return queryString.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#getAllGroupsNamesForMember(java.lang.String, int, int,
-     *      com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public Collection<String> getAllGroupsNamesForMember(String member, int nb, int start, XWikiContext context)
         throws XWikiException
     {
@@ -787,10 +708,11 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return groupNames;
     }
 
+    @Override
     public Collection<DocumentReference> getAllGroupsReferencesForMember(DocumentReference memberReference, int limit,
         int offset, XWikiContext context) throws XWikiException
     {
-        List<DocumentReference> groupReferences = null;
+        Collection<DocumentReference> groupReferences = null;
 
         String prefixedFullName = this.entityReferenceSerializer.serialize(memberReference);
 
@@ -839,19 +761,22 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
                     throw new XWikiException(0, 0, ex.getMessage(), ex);
                 }
 
-                // If the 'XWiki.XWikiAllGroup' is implicit, all users/groups except XWikiGuest and XWikiAllGroup
-                // itself are part of it.
-                if (!groupNames.contains(XWikiRightService.ALLGROUP_GROUP_FULLNAME)
-                    && isAllGroupImplicit(context)
-                    && (!memberReference.getLastSpaceReference().getName().equals("XWiki") || !memberReference
-                        .getName().equals(XWikiRightService.ALLGROUP_GROUP)
-                        && !memberReference.getName().equals(XWikiRightService.GUEST_USER))) {
-                    groupNames.add("XWiki.XWikiAllGroup");
-                }
-
-                groupReferences = new ArrayList<DocumentReference>(groupNames.size());
+                groupReferences = new HashSet<DocumentReference>(groupNames.size());
                 for (String groupName : groupNames) {
                     groupReferences.add(this.currentMixedDocumentReferenceResolver.resolve(groupName));
+                }
+
+                // If the 'XWiki.XWikiAllGroup' is implicit, all users/groups except XWikiGuest and XWikiAllGroup
+                // itself are part of it.
+                if (isAllGroupImplicit(context)
+                    && memberReference.getWikiReference().getName().equals(context.getDatabase())
+                    && !memberReference.getName().equals(XWikiRightService.GUEST_USER)) {
+                    DocumentReference currentXWikiAllGroup =
+                        new DocumentReference(context.getDatabase(), "XWiki", XWikiRightService.ALLGROUP_GROUP);
+
+                    if (!currentXWikiAllGroup.equals(memberReference)) {
+                        groupReferences.add(currentXWikiAllGroup);
+                    }
                 }
 
                 if (supportCache) {
@@ -863,25 +788,14 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return groupReferences;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#getAllMembersNamesForGroup(java.lang.String, int, int,
-     *      com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public Collection<String> getAllMembersNamesForGroup(String group, int nb, int start, XWikiContext context)
         throws XWikiException
     {
         return getAllMatchedMembersNamesForGroup(group, null, nb, start, null, context);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#getAllMembersNamesForGroup(java.lang.String, java.lang.String, int,
-     *      int, java.lang.Boolean, com.xpn.xwiki.XWikiContext)
-     * @since 1.6M1
-     */
+    @Override
     public Collection<String> getAllMatchedMembersNamesForGroup(String group, String matchField, int nb, int start,
         Boolean orderAsc, XWikiContext context) throws XWikiException
     {
@@ -918,12 +832,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#countAllGroupsNamesForMember(java.lang.String,
-     *      com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public int countAllGroupsNamesForMember(String member, XWikiContext context) throws XWikiException
     {
         if (member == null) {
@@ -934,12 +843,7 @@ public class XWikiGroupServiceImpl implements XWikiGroupService, EventListener
         return getAllGroupsNamesForMember(member, 0, 0, context).size();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.user.api.XWikiGroupService#countAllMembersNamesForGroup(java.lang.String,
-     *      com.xpn.xwiki.XWikiContext)
-     */
+    @Override
     public int countAllMembersNamesForGroup(String group, XWikiContext context) throws XWikiException
     {
         if (group == null) {

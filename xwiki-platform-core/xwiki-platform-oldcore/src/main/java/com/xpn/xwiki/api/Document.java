@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.suigeneris.jrcs.diff.DifferentiationFailedException;
@@ -71,6 +71,7 @@ import com.xpn.xwiki.plugin.fileupload.FileUploadPlugin;
 import com.xpn.xwiki.stats.api.XWikiStatsService;
 import com.xpn.xwiki.stats.impl.DocumentStats;
 import com.xpn.xwiki.stats.impl.RefererStats;
+import com.xpn.xwiki.user.api.XWikiRightService;
 import com.xpn.xwiki.util.TOCGenerator;
 import com.xpn.xwiki.util.Util;
 import com.xpn.xwiki.web.Utils;
@@ -2010,9 +2011,17 @@ public class Document extends Api
     protected void saveDocument(String comment, boolean minorEdit) throws XWikiException
     {
         XWikiDocument doc = getDoc();
-        doc.setAuthor(this.context.getUser());
+        
+        // The existing convention is that when the current user reference is null, it's the guest user.
+        DocumentReference currentUserReference = this.context.getUserReference();
+        if (currentUserReference == null) {
+            currentUserReference = this.currentMixedDocumentReferenceResolver.resolve(XWikiRightService.GUEST_USER_FULLNAME);
+        }
+        
+        doc.setAuthorReference(currentUserReference);
+        
         if (doc.isNew()) {
-            doc.setCreator(this.context.getUser());
+            doc.setCreatorReference(currentUserReference);
         }
         getXWikiContext().getWiki().saveDocument(doc, comment, minorEdit, getXWikiContext());
         this.cloned = false;

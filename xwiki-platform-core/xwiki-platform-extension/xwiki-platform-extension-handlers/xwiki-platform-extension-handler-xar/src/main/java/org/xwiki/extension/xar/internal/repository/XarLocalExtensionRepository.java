@@ -37,6 +37,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.extension.Extension;
+import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.InstallException;
 import org.xwiki.extension.LocalExtension;
@@ -45,18 +46,27 @@ import org.xwiki.extension.UninstallException;
 import org.xwiki.extension.event.ExtensionInstalledEvent;
 import org.xwiki.extension.event.ExtensionUninstalledEvent;
 import org.xwiki.extension.event.ExtensionUpgradedEvent;
+import org.xwiki.extension.repository.AbstractExtensionRepository;
 import org.xwiki.extension.repository.ExtensionRepositoryId;
 import org.xwiki.extension.repository.LocalExtensionRepository;
 import org.xwiki.extension.repository.LocalExtensionRepositoryException;
+import org.xwiki.extension.repository.result.IterableResult;
+import org.xwiki.extension.version.Version;
 import org.xwiki.extension.xar.internal.handler.packager.Packager;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.observation.event.Event;
 
+/**
+ * Local repository proxy for XAR extensions.
+ * 
+ * @version $Id$
+ */
 @Component
 @Singleton
 @Named("xar")
-public class XarLocalExtensionRepository implements LocalExtensionRepository, Initializable
+public class XarLocalExtensionRepository extends AbstractExtensionRepository implements LocalExtensionRepository,
+    Initializable
 {
     private static final List<Event> EVENTS = Arrays.<Event> asList(new ExtensionInstalledEvent(),
         new ExtensionUninstalledEvent(), new ExtensionUpgradedEvent());
@@ -76,18 +86,18 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
     @Inject
     private Logger logger;
 
-    private ExtensionRepositoryId repositoryId;
-
     private Map<ExtensionId, XarLocalExtension> extensions = new ConcurrentHashMap<ExtensionId, XarLocalExtension>();
 
+    @Override
     public void initialize() throws InitializationException
     {
-        this.repositoryId = new ExtensionRepositoryId("xar", "xar", this.localRepository.getId().getURI());
+        setId(new ExtensionRepositoryId("xar", "xar", this.localRepository.getId().getURI()));
 
         loadExtensions();
 
         this.observation.addListener(new EventListener()
         {
+            @Override
             public void onEvent(Event event, Object arg1, Object arg2)
             {
                 LocalExtension extension = (LocalExtension) arg1;
@@ -100,11 +110,13 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
                 }
             }
 
+            @Override
             public String getName()
             {
                 return XarLocalExtensionRepository.class.getName();
             }
 
+            @Override
             public List<Event> getEvents()
             {
                 return EVENTS;
@@ -154,13 +166,9 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
         }
     }
 
-    // LocalExtensionRepository
+    // ExtensionRepository
 
-    public ExtensionRepositoryId getId()
-    {
-        return this.repositoryId;
-    }
-
+    @Override
     public Extension resolve(ExtensionId extensionId) throws ResolveException
     {
         Extension extension = this.extensions.get(extensionId);
@@ -172,26 +180,47 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
         return extension;
     }
 
+    @Override
+    public Extension resolve(ExtensionDependency extensionDependency) throws ResolveException
+    {
+        Extension extension = this.localRepository.resolve(extensionDependency);
+        extension = this.extensions.get(extension.getId());
+
+        if (extension == null) {
+            throw new ResolveException("Extension [" + extensionDependency
+                + "] does not exists or is not a xar extension");
+        }
+
+        return extension;
+    }
+
+    @Override
     public boolean exists(ExtensionId extensionId)
     {
         return this.extensions.containsKey(extensionId);
     }
 
+    @Override
+    public IterableResult<Version> resolveVersions(String id, int offset, int nb) throws ResolveException
+    {
+        return this.localRepository.resolveVersions(id, offset, nb);
+    }
+
+    // LocalExtensionRepository
+
+    @Override
     public int countExtensions()
     {
         return this.extensions.size();
     }
 
-    public Collection< ? extends Extension> getExtensions(int nb, int offset)
-    {
-        return new ArrayList<LocalExtension>(this.extensions.values()).subList(offset, offset + nb);
-    }
-
+    @Override
     public Collection<LocalExtension> getLocalExtensions()
     {
         return Collections.<LocalExtension> unmodifiableCollection(this.extensions.values());
     }
 
+    @Override
     public Collection<LocalExtension> getInstalledExtensions(String namespace)
     {
         List<LocalExtension> installedExtensions = new ArrayList<LocalExtension>(extensions.size());
@@ -204,11 +233,13 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
         return installedExtensions;
     }
 
+    @Override
     public Collection<LocalExtension> getInstalledExtensions()
     {
         return getLocalExtensions();
     }
 
+    @Override
     public LocalExtension getInstalledExtension(String id, String namespace)
     {
         LocalExtension extension = this.localRepository.getInstalledExtension(id, namespace);
@@ -222,15 +253,8 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
         return extension;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.repository.LocalExtensionRepository#storeExtension(org.xwiki.extension.Extension,
-     *      boolean)
-     */
     @Override
-    public LocalExtension storeExtension(Extension extension, boolean dependency)
-        throws LocalExtensionRepositoryException
+    public LocalExtension storeExtension(Extension extension) throws LocalExtensionRepositoryException
     {
         throw new RuntimeException("Not implemented");
     }
@@ -241,30 +265,20 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
         throw new RuntimeException("Not implemented");
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.repository.LocalExtensionRepository#installExtension(org.xwiki.extension.LocalExtension,
-     *      java.lang.String)
-     */
     @Override
-    public void installExtension(LocalExtension extension, String namespace) throws InstallException
+    public void installExtension(LocalExtension extension, String namespace, boolean dependency)
+        throws InstallException
     {
         throw new RuntimeException("Not implemented");
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.repository.LocalExtensionRepository#uninstallExtension(org.xwiki.extension.LocalExtension,
-     *      java.lang.String)
-     */
     @Override
     public void uninstallExtension(LocalExtension extension, String namespace) throws UninstallException
     {
         throw new RuntimeException("Not implemented");
     }
 
+    @Override
     public Collection<LocalExtension> getBackwardDependencies(String id, String namespace) throws ResolveException
     {
         LocalExtension extension = this.localRepository.getInstalledExtension(id, namespace);
@@ -272,6 +286,7 @@ public class XarLocalExtensionRepository implements LocalExtensionRepository, In
         return extension.getType().equals("xar") ? this.localRepository.getBackwardDependencies(id, namespace) : null;
     }
 
+    @Override
     public Map<String, Collection<LocalExtension>> getBackwardDependencies(ExtensionId extensionId)
         throws ResolveException
     {

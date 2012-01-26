@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
+import org.xwiki.bridge.event.ActionExecutedEvent;
 import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentDeletedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
@@ -33,18 +36,23 @@ import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.observation.EventListener;
 import org.xwiki.observation.ObservationManager;
+import org.xwiki.observation.event.ActionExecutionEvent;
 import org.xwiki.observation.event.DocumentDeleteEvent;
 import org.xwiki.observation.event.DocumentSaveEvent;
 import org.xwiki.observation.event.DocumentUpdateEvent;
 import org.xwiki.observation.event.Event;
 
 /**
- * An event listener that forwards received events to their corresponding legacy events. This allows depreciated events
- * to continue be supported.
+ * An event listener that forwards received events to their corresponding legacy events. This allows deprecated events
+ * to continue to be supported.
  * 
  * @version $Id$
+ * @deprecated since old events shouldn't be used anymore (they're deprecated themselves)
  */
-@Component("legacyEventDispatcher")
+@Component
+@Named("legacyEventDispatcher")
+@Singleton
+@Deprecated
 public class LegacyEventDispatcher implements EventListener
 {
     /**
@@ -84,6 +92,7 @@ public class LegacyEventDispatcher implements EventListener
                 add(new DocumentDeletedEvent());
                 add(new DocumentCreatedEvent());
                 add(new DocumentUpdatedEvent());
+                add(new ActionExecutedEvent());
             }
         };
     }
@@ -102,6 +111,9 @@ public class LegacyEventDispatcher implements EventListener
         } else if (event instanceof DocumentUpdatedEvent) {
             this.getObservationManager().notify(
                 new DocumentUpdateEvent(((DocumentUpdatedEvent) event).getEventFilter()), source, data);
+        } else if (event instanceof ActionExecutedEvent) {
+            this.getObservationManager().notify(
+                new ActionExecutionEvent(((ActionExecutedEvent) event).getActionName()), source, data);
         }
     }
 

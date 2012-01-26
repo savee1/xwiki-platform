@@ -123,16 +123,20 @@ var XWiki = (function(XWiki){
    * Sets or replace the input field associated with this suggest.
    */
   setInputField: function(input){
-    if (this.fld) {
-      this.fld.stopObserving();
-    }
+    this.detach();
     this.fld = $(input);
+    if (this.fld.__x_suggest) {
+      this.fld.__x_suggest.detach();
+    }
+    this.fld.__x_suggest = this;
     // Bind the key listeners on the input field.
-    this.fld.observe("keyup", this.onKeyUp.bindAsEventListener(this));
+    this.onKeyUp = this.onKeyUp.bindAsEventListener(this);
+    this.fld.observe("keyup", this.onKeyUp);
+    this.onKeyPress = this.onKeyPress.bindAsEventListener(this);
     if (Prototype.Browser.IE || Prototype.Browser.WebKit) {
-      this.fld.observe("keydown", this.onKeyPress.bindAsEventListener(this));
+      this.fld.observe("keydown", this.onKeyPress);
     } else {
-      this.fld.observe("keypress", this.onKeyPress.bindAsEventListener(this));
+      this.fld.observe("keypress", this.onKeyPress);
     }
 
     // Prevent normal browser autocomplete
@@ -392,6 +396,9 @@ var XWiki = (function(XWiki){
       if (this.options.align == 'left') {
         // Align the box on the left
         div.style.left = pos.left + "px";
+      } else if (this.options.align == "center") {
+        // Align the box to the center
+        div.style.left = pos.left + (this.fld.getWidth() - containerWidth - 2) / 2 + "px";
       } else {
         // Align the box on the right.
         // This has a visible effect only when the container width is not the same as the input width
@@ -478,7 +485,14 @@ var XWiki = (function(XWiki){
           sourceContainer.insert( sourceHeader );
           var classes = "sourceContent " + (this.options.unifiedLoader ? "" : "loading");
           sourceContainer.insert( new Element('div', {'class':classes}));
+
+          if (typeof source.before !== 'undefined') {
+            this.resultContainer.insert(source.before);
+          }
           this.resultContainer.insert(sourceContainer);
+          if (typeof source.after !== 'undefined') {
+            this.resultContainer.insert(source.after);
+          }
         }
       }
     } else {
@@ -866,6 +880,23 @@ var XWiki = (function(XWiki){
         $(this.container).remove();
       }
       document.fire("xwiki:suggest:clearSuggestions", { 'suggest' : this});
+    }
+  },
+
+  /**
+   * Remove suggest behavior from the target field (detach all listeners and hide the suggest if active)
+   */
+  detach : function() {
+    if (this.fld) {
+      Event.stopObserving(this.fld, "keyup", this.onKeyUp);
+      if (Prototype.Browser.IE || Prototype.Browser.WebKit) {
+        Event.stopObserving(this.fld, "keydown", this.onKeyPress);
+      } else {
+        Event.stopObserving(this.fld, "keypress", this.onKeyPress);
+      }
+      this.clearSuggestions();
+      this.fld.__x_suggest = null;
+      this.fld.setAttribute("autocomplete", "on");
     }
   }
 

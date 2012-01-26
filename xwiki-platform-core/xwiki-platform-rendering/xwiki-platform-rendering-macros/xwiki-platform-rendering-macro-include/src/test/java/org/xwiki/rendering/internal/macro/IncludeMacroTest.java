@@ -22,6 +22,7 @@ package org.xwiki.rendering.internal.macro;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import junit.framework.Assert;
 import org.jmock.Expectations;
 import org.junit.Test;
 import org.xwiki.bridge.DocumentModelBridge;
+import org.xwiki.context.Execution;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.MacroBlock;
@@ -69,6 +71,16 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     private PrintRendererFactory rendererFactory;
 
     @Override
+    public void setUp() throws Exception
+    {
+        super.setUp();
+
+        // Put a fake XWiki context on the execution context.
+        getComponentManager().lookup(Execution.class).getContext()
+            .setProperty("xwikicontext", new HashMap<Object, Object>());
+    }
+
+    @Override
     protected void registerComponents() throws Exception
     {
         super.registerComponents();
@@ -82,14 +94,14 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     public void testIncludeMacroWithNewContextShowsVelocityMacrosAreIsolated() throws Exception
     {
         String expected = "beginDocument\n"
-            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.page]]\n"
+            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[wiki:Space.IncludedPage][base]=[wiki:Space.IncludedPage]]\n"
             + "beginMacroMarkerStandalone [velocity] [] [#testmacro]\n"
             + "beginParagraph\n"
             + "onSpecialSymbol [#]\n"
             + "onWord [testmacro]\n"
             + "endParagraph\n"
             + "endMacroMarkerStandalone [velocity] [] [#testmacro]\n"
-            + "endMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.page]]\n"
+            + "endMetaData [[syntax]=[XWiki 2.0][source]=[wiki:Space.IncludedPage][base]=[wiki:Space.IncludedPage]]\n"
             + "endDocument";
 
         // We verify that a Velocity macro set in the including page is not seen in the included page.
@@ -103,9 +115,9 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     public void testIncludeMacroWithCurrentContextShowsVelocityMacrosAreShared() throws Exception
     {
         String expected = "beginDocument\n"
-            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.page]]\n"
+            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[wiki:Space.IncludedPage]]\n"
             + "onMacroStandalone [velocity] [] [#testmacro]\n"
-            + "endMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.page]]\n"
+            + "endMetaData [[syntax]=[XWiki 2.0][source]=[wiki:Space.IncludedPage]]\n"
             + "endDocument";
 
         // We verify that a Velocity macro set in the including page is seen in the included page.
@@ -124,7 +136,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
             this.includeMacro.execute(parameters, null, createMacroTransformationContext("whatever", false));
             Assert.fail("An exception should have been thrown");
         } catch (MacroExecutionException expected) {
-            Assert.assertEquals("You must specify a 'document' parameter pointing to the document to include.",
+            Assert.assertEquals("You must specify a 'reference' parameter pointing to the entity to include.",
                 expected.getMessage());
         }
     }
@@ -136,7 +148,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     public void testIncludeMacroWhenIncludingDocumentWithRelativeReferences() throws Exception
     {
         String expected = "beginDocument\n"
-            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[includedWiki:includedSpace.includedPage]]\n"
+            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[includedWiki:includedSpace.includedPage][base]=[includedWiki:includedSpace.includedPage]]\n"
             + "beginParagraph\n"
             + "beginLink [Typed = [false] Type = [doc] Reference = [page]] [false]\n"
             + "endLink [Typed = [false] Type = [doc] Reference = [page]] [false]\n"
@@ -146,7 +158,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
             + "onSpace\n"
             + "onImage [Typed = [false] Type = [attach] Reference = [test.png]] [true]\n"
             + "endParagraph\n"
-            + "endMetaData [[syntax]=[XWiki 2.0][source]=[includedWiki:includedSpace.includedPage]]\n"
+            + "endMetaData [[syntax]=[XWiki 2.0][source]=[includedWiki:includedSpace.includedPage][base]=[includedWiki:includedSpace.includedPage]]\n"
             + "endDocument";
 
         setUpDocumentMock("includedWiki:includedSpace.includedPage",
@@ -159,7 +171,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
         }});
         
         IncludeMacroParameters parameters = new IncludeMacroParameters();
-        parameters.setDocument("includedWiki:includedSpace.includedPage");
+        parameters.setReference("includedWiki:includedSpace.includedPage");
         parameters.setContext(Context.NEW);
 
         List<Block> blocks = this.includeMacro.execute(parameters, null,
@@ -183,11 +195,11 @@ public class IncludeMacroTest extends AbstractComponentTestCase
         MacroTransformationContext macroContext = createMacroTransformationContext("wiki:space.page", false);
         // Add an Include Macro MarkerBlock as a parent of the include Macro block since this is what would have
         // happened if an Include macro is included in another Include macro.
-        new MacroMarkerBlock("include", Collections.singletonMap("document", "space.page"),
+        new MacroMarkerBlock("include", Collections.singletonMap("reference", "space.page"),
             Collections.<Block>singletonList(macroContext.getCurrentMacroBlock()), false);
 
         IncludeMacroParameters parameters = new IncludeMacroParameters();
-        parameters.setDocument("wiki:space.page");
+        parameters.setReference("wiki:space.page");
         parameters.setContext(Context.CURRENT);
         
         try {
@@ -205,20 +217,20 @@ public class IncludeMacroTest extends AbstractComponentTestCase
         throws Exception
     {
         String expected = "beginDocument\n"
-            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[relativePage]]\n"
+            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.relativePage]]\n"
             + "beginParagraph\n"
             + "onWord [content]\n"
             + "endParagraph\n"
-            + "endMetaData [[syntax]=[XWiki 2.0][source]=[relativePage]]\n"
+            + "endMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.relativePage]]\n"
             + "endDocument";
 
         IncludeMacroParameters parameters = new IncludeMacroParameters();
-        parameters.setDocument("relativePage");
+        parameters.setReference("relativePage");
 
         MacroTransformationContext macroContext = createMacroTransformationContext("whatever", false);
         // Add a Source MetaData Block as a parent of the include Macro block.
         new MetaDataBlock(Collections.<Block>singletonList(macroContext.getCurrentMacroBlock()),
-            new MetaData(Collections.<String, Object>singletonMap(MetaData.SOURCE, "wiki:space.page")));
+            new MetaData(Collections.<String, Object>singletonMap(MetaData.BASE, "wiki:space.page")));
 
         final DocumentReference sourceReference = new DocumentReference("wiki", "space", "page");
         final DocumentReference resolvedReference = new DocumentReference("wiki", "space", "relativePage");
@@ -230,6 +242,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
                 will(returnValue(resolvedReference));
             oneOf(mockSetup.bridge).isDocumentViewable(resolvedReference); will(returnValue(true));
             oneOf(mockSetup.bridge).getDocument(resolvedReference); will(returnValue(mockDocument));
+            oneOf(mockSetup.bridge).getCurrentDocumentReference(); will(returnValue(sourceReference));
             oneOf(mockDocument).getXDOM(); will(returnValue(getXDOM("content")));
             oneOf(mockDocument).getSyntax(); will(returnValue(Syntax.XWIKI_2_0));
         }});
@@ -243,18 +256,18 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     public void testIncludeMacroWhenSectionSpecified() throws Exception
     {
         String expected = "beginDocument\n"
-            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[document]]\n"
+            + "beginMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.document]]\n"
             + "beginHeader [1, Hsection]\n"
             + "onWord [section]\n"
             + "endHeader [1, Hsection]\n"
             + "beginParagraph\n"
             + "onWord [content2]\n"
             + "endParagraph\n"
-            + "endMetaData [[syntax]=[XWiki 2.0][source]=[document]]\n"
+            + "endMetaData [[syntax]=[XWiki 2.0][source]=[wiki:space.document]]\n"
             + "endDocument";
 
         IncludeMacroParameters parameters = new IncludeMacroParameters();
-        parameters.setDocument("document");
+        parameters.setReference("document");
         parameters.setSection("Hsection");
 
         final DocumentReference resolvedReference = new DocumentReference("wiki", "space", "document");
@@ -264,6 +277,8 @@ public class IncludeMacroTest extends AbstractComponentTestCase
                 will(returnValue(resolvedReference));
             oneOf(mockSetup.bridge).isDocumentViewable(resolvedReference); will(returnValue(true));
             oneOf(mockSetup.bridge).getDocument(resolvedReference); will(returnValue(mockDocument));
+            oneOf(mockSetup.bridge).getCurrentDocumentReference();
+                will(returnValue(new DocumentReference("wiki", "Space", "IncludingPage")));
             oneOf(mockDocument).getSyntax(); will(returnValue(Syntax.XWIKI_2_0));
             oneOf(mockDocument).getXDOM(); will(returnValue(getXDOM("content1\n\n= section =\ncontent2")));
         }});
@@ -278,7 +293,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     public void testIncludeMacroWhenInvalidSectionSpecified() throws Exception
     {
         IncludeMacroParameters parameters = new IncludeMacroParameters();
-        parameters.setDocument("document");
+        parameters.setReference("document");
         parameters.setSection("unknown");
 
         final DocumentReference resolvedReference = new DocumentReference("wiki", "space", "document");
@@ -288,8 +303,11 @@ public class IncludeMacroTest extends AbstractComponentTestCase
                 will(returnValue(resolvedReference));
             oneOf(mockSetup.bridge).isDocumentViewable(resolvedReference); will(returnValue(true));
             oneOf(mockSetup.bridge).getDocument(resolvedReference); will(returnValue(mockDocument));
+            oneOf(mockSetup.bridge).getCurrentDocumentReference();
+                will(returnValue(new DocumentReference("wiki", "Space", "IncludingPage")));
             oneOf(mockDocument).getSyntax(); will(returnValue(Syntax.XWIKI_2_0));
             oneOf(mockDocument).getXDOM(); will(returnValue(getXDOM("content")));
+            oneOf(mockDocument).getDocumentReference(); will(returnValue(resolvedReference));
         }});
 
         try {
@@ -305,7 +323,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     {
         MacroTransformationContext context = new MacroTransformationContext();
         MacroBlock includeMacro =
-            new MacroBlock("include", Collections.singletonMap("document", documentName), isInline);
+            new MacroBlock("include", Collections.singletonMap("reference", documentName), isInline);
         context.setCurrentMacroBlock(includeMacro);
         return context;
     }
@@ -320,6 +338,7 @@ public class IncludeMacroTest extends AbstractComponentTestCase
             allowing(mockSetup.bridge).getDocument(reference); will(returnValue(mockDocument));
             allowing(mockDocument).getSyntax(); will(returnValue(Syntax.XWIKI_2_0));
             allowing(mockDocument).getXDOM(); will(returnValue(getXDOM(content)));
+            allowing(mockDocument).getDocumentReference(); will(returnValue(reference));
         }});
     }
 
@@ -333,35 +352,42 @@ public class IncludeMacroTest extends AbstractComponentTestCase
     {
         VelocityManager velocityManager = getComponentManager().lookup(VelocityManager.class);
         StringWriter writer = new StringWriter();
-        velocityManager.getVelocityEngine().evaluate(velocityManager.getVelocityContext(), writer, "templateId",
-            velocity);
+        velocityManager.getVelocityEngine().evaluate(velocityManager.getVelocityContext(), writer,
+            "wiki:Space.IncludingPage", velocity);
 
         return runIncludeMacro(context, includedContent);
     }
 
     private List<Block> runIncludeMacro(final Context context, String includedContent) throws Exception
     {
-        setUpDocumentMock("wiki:space.page", new DocumentReference("wiki", "space", "page"), includedContent);
+        final DocumentReference includedDocumentReference = new DocumentReference("wiki", "Space", "IncludedPage");
+        String includedDocStringRef = "wiki:space.page";
+        setUpDocumentMock(includedDocStringRef, includedDocumentReference, includedContent);
         getMockery().checking(new Expectations() {{
-            allowing(mockSetup.bridge).isDocumentViewable(with(any(DocumentReference.class))); will(returnValue(true));
+            allowing(mockSetup.bridge).isDocumentViewable(with(same(includedDocumentReference)));
+                will(returnValue(true));
             // Verify that push/pop are called when context is NEW
             if (context == Context.NEW) {
-                oneOf(mockSetup.bridge).pushDocumentInContext(with(any(Map.class)), with(any(DocumentReference.class)));
+                oneOf(mockSetup.bridge).pushDocumentInContext(with(any(Map.class)),
+                    with(same(includedDocumentReference)));
                 oneOf(mockSetup.bridge).popDocumentFromContext(with(any(Map.class)));
+            } else {
+                oneOf(mockSetup.bridge).getCurrentDocumentReference();
+                    will(returnValue(new DocumentReference("wiki", "Space", "IncludingPage")));
             }
         }});
         this.includeMacro.setDocumentAccessBridge(this.mockSetup.bridge);
 
         IncludeMacroParameters parameters = new IncludeMacroParameters();
-        parameters.setDocument("wiki:space.page");
+        parameters.setReference(includedDocStringRef);
         parameters.setContext(context);
 
         // Create a Macro transformation context with the Macro transformation object defined so that the include
         // macro can transform included page which is using a new context.
         MacroTransformation macroTransformation =
             (MacroTransformation) getComponentManager().lookup(Transformation.class, "macro");
-        MacroTransformationContext macroContext = createMacroTransformationContext("wiki:space.page", false);
-        macroContext.setId("templateId");
+        MacroTransformationContext macroContext = createMacroTransformationContext(includedDocStringRef, false);
+        macroContext.setId("wiki:Space.IncludingPage");
         macroContext.setTransformation(macroTransformation);
 
         return this.includeMacro.execute(parameters, null, macroContext);

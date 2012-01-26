@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.xwiki.platform</groupId>
     <artifactId>xwiki-platform-core</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.5-SNAPSHOT</version>
   </parent>
   <artifactId>xwiki-platform-oldcore</artifactId>
   <name>XWiki Platform - Old Core</name>
@@ -53,15 +53,6 @@
       <version>0.4.2</version>
     </dependency>
 
-    <!-- Version 1.1 of jackrabbit core needs to be uploaded to central repository. In addition there was a  POM
-         issue in version 1.0.1, see http://jira.codehaus.org/browse/MEV-453 -->
-    <!-- TODO: Version 1.4.2 is published in the central repo, can we use that? -->
-    <dependency>
-      <groupId>org.apache.jackrabbit</groupId>
-      <artifactId>jackrabbit-core</artifactId>
-      <version>1.1-xwiki</version>
-    </dependency>
-
     <!-- We need to find what version of the googleapi we're using and get that to the central repository if the
          license allows it -->
     <dependency>
@@ -71,25 +62,6 @@
       <classifier>xwiki</classifier>
     </dependency>
 
-    <!-- There's no release of Graffito yet (http://incubator.apache.org/graffito/jcr-mapping/index.html) -->
-    <dependency>
-      <groupId>org.apache.portals</groupId>
-      <artifactId>graffito-jcr-mapping</artifactId>
-      <version>1.0-a1-amelentev-dev</version>
-    </dependency>
-
-    <!-- VMA: I'm not sure if we have the right to distribute this jar. It's not on the central repository because
-         of licensing issues. -->
-    <!-- Sergiu: No, we cannot redistribute it. And we definitely shouldn't put it in our repo.
-         We can redistribute version 1.1, but we should make users approve their License Agreement.
-         Can we drop this completely? Why is it needed? -->
-    <!-- TODO: Version 1.1 is available, should we upgrade? -->
-    <dependency>
-      <groupId>javax.transaction</groupId>
-      <artifactId>jta</artifactId>
-      <version>1.0.1B</version>
-    </dependency>
-
     <dependency>
       <groupId>com.novell.ldap</groupId>
       <artifactId>jldap</artifactId>
@@ -97,22 +69,15 @@
     </dependency>
 
     <dependency>
-      <groupId>jfree</groupId>
+      <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>
-    </dependency>
-
-    <!-- See http://jira.codehaus.org/browse/MEV-488 -->
-    <dependency>
-      <groupId>javax.jcr</groupId>
-      <artifactId>jcr</artifactId>
-      <version>1.0</version>
     </dependency>
 
     <!-- We need to create a JIRA issue on the Maven project to upload these artifacts -->
     <dependency>
       <groupId>info.informatica</groupId>
       <artifactId>css4j</artifactId>
-      <version>0.10</version>
+      <version>0.13</version>
     </dependency>
     <!-- TODO: Check if this dependency is really required at runtime -->
     <dependency>
@@ -164,8 +129,8 @@
     <!-- Apache Commons -->
     <!-- The versions for these are defined in the parent pom -->
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-collections</groupId>
@@ -252,18 +217,12 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
-      <version>3.6.7.Final</version>
+      <version>3.6.9.Final</version>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-c3p0</artifactId>
-      <version>3.6.7.Final</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-ehcache</artifactId>
-      <version>3.6.7.Final</version>
+      <version>3.6.9.Final</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -368,62 +327,10 @@
       <artifactId>avalon-framework-impl</artifactId>
       <version>4.3.1</version>
     </dependency>
-    <!-- fop depends on batik 1.7, but the batik folks did not release the rasterizer module
-         for this version, which we need. Since the 1.6 and 1.7 releases are fairly compatible,
-         but use different groupId names, we can use all the modules from 1.7, and exclude all
-         the 1.6 dependencies pulled by the rasterizer, until we can depend on a clean 1.7
-         rasterizer module.
-         See https://issues.apache.org/bugzilla/show_bug.cgi?id=45020 -->
     <dependency>
-      <groupId>batik</groupId>
+      <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>batik-rasterizer</artifactId>
-      <version>1.6</version>
-      <exclusions>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-awt-util</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-bridge</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-css</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-dom</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-gvt</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-parser</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-script</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-svg-dom</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-transcoder</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-util</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>batik</groupId>
-          <artifactId>batik-xml</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>1.7</version>
     </dependency>
     <!-- fop gets us batik but not batik-codec and we need this one for SVGPlugin -->
     <dependency>
@@ -576,13 +483,23 @@
       <artifactId>xwiki-platform-url-container</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-display-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-sheet-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <!-- Used by com.xpn.xwiki.web.CommentAction -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-captcha</artifactId>
       <version>${project.version}</version>
       <!-- Core does not depend on this to run so it shouldn't be pulled in unless it is a dependency somewhere else. -->
-      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
@@ -625,14 +542,7 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-cache-jbosscache</artifactId>
-      <version>${project.version}</version>
-      <!-- Only needed at runtime since it's a component implementation -->
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-cache-oscache</artifactId>
+      <artifactId>xwiki-platform-cache-infinispan</artifactId>
       <version>${project.version}</version>
       <!-- Only needed at runtime since it's a component implementation -->
       <scope>runtime</scope>
@@ -671,6 +581,18 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- User by HibernateDataMigrationManager to temporarily disable logback logging in hibernate -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-logging-api</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-logging-logback</artifactId>
+      <version>${commons.version}</version>
+      <scope>test</scope>
+    </dependency>
     <!-- Test dependencies -->
 
     <!-- Used to mock XWiki class -->
@@ -728,7 +650,6 @@
       <version>${commons.version}</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
   <build>
     <plugins>
@@ -787,11 +708,6 @@
               **/atom/lifeblog/UserBlog.java,
               **/atom/WSSEHttpHeader.java,
               **/atom/XWikiHelper.java,
-              **/cache/api/internal/XWikiCacheServiceStub.java,
-              **/cache/api/internal/XWikiCacheStub.java,
-              **/cache/api/XWikiCache.java,
-              **/cache/api/XWikiCacheNeedsRefreshException.java,
-              **/cache/api/XWikiCacheService.java,
               **/content/parsers/RenamePageReplaceLinkHandler.java,
               **/criteria/api/XWikiCriteriaService.java,
               **/criteria/impl/DurationFactory.java,
@@ -820,7 +736,6 @@
               **/doc/XWikiLock.java,
               **/export/html/HtmlPackager.java,
               **/i18n/i18n.java,
-              **/internal/ComponentManagerBridgeEventListener.java,
               **/internal/DefaultCoreConfiguration.java,
               **/internal/macro/DefaultWikiMacroFactory.java,
               **/internal/macro/DefaultWikiMacroInitializer.java,
@@ -844,16 +759,6 @@
               **/monitor/api/MonitorPlugin.java,
               **/monitor/api/MonitorTimer.java,
               **/monitor/api/MonitorTimerSummary.java,
-              **/notify/DocChangeRule.java,
-              **/notify/DocObjectChangedRule.java,
-              **/notify/PropertyChangedRule.java,
-              **/notify/XWikiActionNotificationInterface.java,
-              **/notify/XWikiActionRule.java,
-              **/notify/XWikiDocChangeNotificationInterface.java,
-              **/notify/XWikiNotificationInterface.java,
-              **/notify/XWikiNotificationManager.java,
-              **/notify/XWikiNotificationRule.java,
-              **/notify/XWikiPageNotification.java,
               **/objects/BaseCollection.java,
               **/objects/BaseElement.java,
               **/objects/BaseObject.java,
@@ -1008,6 +913,8 @@
               **/plugin/graphviz/GraphVizMacro.java,
               <!-- XWiki LDAP Utils has a fan out complexity of 21 that needs to be investigated and refactored. -->
               **/plugin/ldap/XWikiLDAPUtils.java,
+              <!-- Small Fan-Out complexity issue but it would need a big refactor to be fixed. -->
+              **/plugin/ldap/XWikiLDAPConnection.java,
               **/plugin/mail/MailPluginApi.java,
               **/plugin/mail/MailPlugin.java,
               **/plugin/packaging/DocumentFilter.java,
@@ -1101,13 +1008,15 @@
               **/store/DBCPConnectionProvider.java,
               **/store/hibernate/DefaultHibernateSessionFactory.java,
               **/store/hibernate/HibernateSessionFactory.java,
-              **/store/migration/AbstractXWikiMigrationManager.java,
-              **/store/migration/hibernate/AbstractXWikiHibernateMigrator.java,
-              **/store/migration/hibernate/R4340XWIKI883Migrator.java,
-              **/store/migration/hibernate/R4359XWIKI1459Migrator.java,
-              **/store/migration/hibernate/R6079XWIKI1878Migrator.java,
-              **/store/migration/hibernate/R7350XWIKI2079Migrator.java,
-              **/store/migration/hibernate/XWikiHibernateMigrationManager.java,
+              <!-- AbstractDataMigrationManager has a fan out complexity of 25 that may needs to be investigated. -->
+              **/store/migration/AbstractDataMigrationManager.java,
+              <!-- Hibernate migrations use anonymous inner class (doInHibernate) that exceeds the 20 lines limit. -->
+              **/store/migration/hibernate/HibernateDataMigrationManager.java,
+              **/store/migration/hibernate/LegacyDataMigration.java,
+              **/store/migration/hibernate/R4340XWIKI883DataMigration.java,
+              **/store/migration/hibernate/R4359XWIKI1459DataMigration.java,
+              **/store/migration/hibernate/R6079XWIKI1878DataMigration.java,
+              **/store/migration/hibernate/R7350XWIKI2079DataMigration.java,
               **/store/XWikiAttachmentStoreInterface.java,
               **/store/XWikiBatcherFactory.java,
               **/store/XWikiBatcher.java,
@@ -1260,7 +1169,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>

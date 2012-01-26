@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
 <xwikidoc>
 <web>XWiki</web>
 <name>AdminUsersSheet</name>
@@ -51,9 +70,9 @@
     &lt;tr&gt;
       &lt;td class="xwiki-livetable-pagination" colspan="2"&gt;
         &lt;span id="userstable-limits" class="xwiki-livetable-limits"&gt;&lt;/span&gt;
-        &lt;span id="userstable-ajax-loader" class="xwiki-livetable-loader"&gt;&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')" alt="$msg.get('xe.livetable.loading')" title="" /&gt;$msg.get("xe.livetable.loading")&lt;/span&gt;
+        &lt;span id="userstable-ajax-loader" class="xwiki-livetable-loader"&gt;&lt;img src="$xwiki.getSkinFile('icons/xwiki/ajax-loader-large.gif')" alt="$msg.get('platform.livetable.loading')" title="" /&gt;$msg.get("platform.livetable.loading")&lt;/span&gt;
         &lt;span class="pagination"&gt;
-          &lt;span id="userstable-pagination-text" class="xwiki-livetable-pagination-text"&gt;$msg.get("xe.pagination.page")&lt;/span&gt;
+          &lt;span id="userstable-pagination-text" class="xwiki-livetable-pagination-text"&gt;$msg.get("platform.livetable.paginationPage")&lt;/span&gt;
           &lt;span id="userstable-pagination" class="xwiki-livetable-pagination-content" &gt;&lt;/span&gt;
         &lt;/span&gt;
       &lt;/td&gt;

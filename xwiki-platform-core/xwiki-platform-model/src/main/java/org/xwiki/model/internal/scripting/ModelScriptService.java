@@ -23,7 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
@@ -250,7 +250,8 @@ public class ModelScriptService implements ScriptService
         try {
             EntityReferenceResolver<String> resolver =
                 this.componentManager.lookup(EntityReferenceResolver.class, hint);
-            return new ObjectPropertyReference(resolver.resolve(stringRepresentation, EntityType.OBJECT_PROPERTY, parameters));
+            return new ObjectPropertyReference(resolver.resolve(stringRepresentation, EntityType.OBJECT_PROPERTY,
+                parameters));
         } catch (ComponentLookupException e) {
             return null;
         }

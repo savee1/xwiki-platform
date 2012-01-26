@@ -21,19 +21,19 @@ package org.xwiki.extension.repository;
 
 import junit.framework.Assert;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.xwiki.extension.Extension;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.test.ConfigurableDefaultCoreExtensionRepository;
+import org.xwiki.extension.version.internal.DefaultVersion;
 import org.xwiki.test.AbstractComponentTestCase;
 
 public class DefaultCoreExtensionRepositoryTest extends AbstractComponentTestCase
 {
     private ConfigurableDefaultCoreExtensionRepository coreExtensionRepository;
 
-    @Before
+    @Override
     public void setUp() throws Exception
     {
         super.setUp();
@@ -47,29 +47,38 @@ public class DefaultCoreExtensionRepositoryTest extends AbstractComponentTestCas
     {
         super.registerComponents();
 
-        ConfigurableDefaultCoreExtensionRepository.register(getComponentManager());
+        registerComponent(ConfigurableDefaultCoreExtensionRepository.class);
     }
 
+    /**
+     * Validate core extension loading and others initializations.
+     */
     @Test
     public void testInit()
     {
         Assert.assertTrue(this.coreExtensionRepository.countExtensions() > 0);
-    }    
+    }
 
+    /**
+     * Validate {@link CoreExtensionRepository#getCoreExtension(String)}
+     */
     @Test
     public void testGetCoreExtension()
     {
         Assert.assertNull(this.coreExtensionRepository.getCoreExtension("unexistingextension"));
 
-        this.coreExtensionRepository.addExtensions("existingextension", "version");
+        this.coreExtensionRepository.addExtensions("existingextension", new DefaultVersion("version"));
 
         Extension extension = this.coreExtensionRepository.getCoreExtension("existingextension");
 
         Assert.assertNotNull(extension);
         Assert.assertEquals("existingextension", extension.getId().getId());
-        Assert.assertEquals("version", extension.getId().getVersion());
+        Assert.assertEquals("version", extension.getId().getVersion().getValue());
     }
 
+    /**
+     * Validate {@link CoreExtensionRepository#resolve(ExtensionId)}
+     */
     @Test
     public void testResolve() throws ResolveException
     {
@@ -81,7 +90,7 @@ public class DefaultCoreExtensionRepositoryTest extends AbstractComponentTestCas
             // expected
         }
 
-        this.coreExtensionRepository.addExtensions("existingextension", "version");
+        this.coreExtensionRepository.addExtensions("existingextension", new DefaultVersion("version"));
 
         try {
             this.coreExtensionRepository.resolve(new ExtensionId("existingextension", "wrongversion"));
@@ -95,6 +104,6 @@ public class DefaultCoreExtensionRepositoryTest extends AbstractComponentTestCas
 
         Assert.assertNotNull(extension);
         Assert.assertEquals("existingextension", extension.getId().getId());
-        Assert.assertEquals("version", extension.getId().getVersion());
+        Assert.assertEquals("version", extension.getId().getVersion().getValue());
     }
 }

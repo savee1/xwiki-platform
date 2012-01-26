@@ -1,4 +1,25 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
 <!DOCTYPE hibernate-configuration PUBLIC
   "-//Hibernate/Hibernate Configuration DTD//EN"
   "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
@@ -105,6 +126,10 @@
 
     <!-- PostgreSQL configuration.
          Uncomment if you want to use PostgreSQL and comment out other database configurations.
+         Notes:
+           - "jdbc.use_streams_for_binary" needs to be set to "false",
+             see https://community.jboss.org/wiki/HibernateCoreMigrationGuide36
+
     <property name="connection.url">jdbc:postgresql:xwiki</property>
     <property name="connection.username">xwiki</property>
     <property name="connection.password">xwiki</property>
@@ -113,6 +138,7 @@
     <property name="connection.provider_class">com.xpn.xwiki.store.DBCPConnectionProvider</property>
     <property name="connection.pool_size">2</property>
     <property name="statement_cache.size">2</property>
+    <property name="jdbc.use_streams_for_binary">false</property>
     <mapping resource="xwiki.hbm.xml"/>
     <mapping resource="feeds.hbm.xml"/>
 ## Note: This is starting the line in order not to put extra spaces when generated
@@ -127,9 +153,12 @@
 
     <!-- Oracle configuration.
          Uncomment if you want to use Oracle and comment out other database configurations.
-         Note: the 2 properties named "hibernate.connection.SetBigStringTryClob" and
-         "hibernate.jdbc.batch_size". They are required to tell Oracle to allow CLOBs larger than
-         32K. 
+         Notes:
+           - the 2 properties named "connection.SetBigStringTryClob" and
+             "jdbc.batch_size". They are required to tell Oracle to allow CLOBs larger than 32K.
+           - "jdbc.use_streams_for_binary" needs to be set to "false",
+             see https://community.jboss.org/wiki/HibernateCoreMigrationGuide36
+
     <property name="connection.url">jdbc:oracle:thin:@localhost:1521:XE</property>
     <property name="connection.username">xwiki</property>
     <property name="connection.password">xwiki</property>
@@ -138,8 +167,9 @@
     <property name="connection.provider_class">com.xpn.xwiki.store.DBCPConnectionProvider</property>
     <property name="connection.pool_size">2</property>
     <property name="statement_cache.size">2</property>
-    <property name="hibernate.connection.SetBigStringTryClob">true</property>
-    <property name="hibernate.jdbc.batch_size">0</property>
+    <property name="connection.SetBigStringTryClob">true</property>
+    <property name="jdbc.batch_size">0</property>
+    <property name="jdbc.use_streams_for_binary">false</property>
     <mapping resource="xwiki.oracle.hbm.xml"/>
     <mapping resource="feeds.oracle.hbm.xml"/>
 ## Note: This is starting the line in order not to put extra spaces when generated

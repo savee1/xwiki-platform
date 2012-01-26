@@ -29,7 +29,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.context.Execution;
 import org.xwiki.eventstream.Event;
@@ -156,6 +156,8 @@ public class BridgeEventStream implements EventStream
         for (Map.Entry<Integer, Object> entry : query.getPositionalParameters().entrySet()) {
             q.bindValue(entry.getKey(), entry.getValue());
         }
+        q.setLimit(query.getLimit());
+        q.setOffset(query.getOffset());
         List<ActivityEvent> events = q.execute();
         return convertActivitiesToEvents(events);
     }

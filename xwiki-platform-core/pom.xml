@@ -27,17 +27,17 @@
   <parent>
     <groupId>org.xwiki.platform</groupId>
     <artifactId>xwiki-platform</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.5-SNAPSHOT</version>
   </parent>
   <artifactId>xwiki-platform-core</artifactId>
   <name>XWiki Platform - Core - Parent POM</name>
   <packaging>pom</packaging>
   <description>XWiki Platform - Core - Parent POM</description>
   <properties>
-    <!-- We use our custom version of GWT because some dependencies are missing from the gwt-user 2.3.0 POM. -->
-    <gwt.version>2.3.0-xwiki-20110506</gwt.version>
-    <gwt.maven.plugin.version>2.2.0</gwt.maven.plugin.version>
-    <smartgwt.version>2.4</smartgwt.version>
+    <gwt.version>2.4.0</gwt.version>
+    <gwt.maven.plugin.version>2.4.0</gwt.maven.plugin.version>
+    <smartgwt.version>3.0</smartgwt.version>
+    <restlet.version>2.0.11</restlet.version>
   </properties>
   <dependencies>
     <dependency>
@@ -81,7 +81,7 @@
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-all</artifactId>
-        <version>1.8.1</version>
+        <version>1.8.5</version>
       </dependency>
       <!-- Jython engine -->
       <dependency>
@@ -91,30 +91,27 @@
       </dependency>
       <!-- JFreeChart -->
       <dependency>
-        <groupId>jfree</groupId>
+        <groupId>org.jfree</groupId>
         <artifactId>jfreechart</artifactId>
-        <version>1.0.13</version>
+        <version>1.0.14</version>
       </dependency>
-      <!-- Used on remote objervatoin and also by JBossCache (even if it does not really use it) -->
+      <!-- Used on remote observation and also by JBossCache/Infinispan (even if it does not really use it) -->
       <dependency>
         <groupId>org.jgroups</groupId>
         <artifactId>jgroups</artifactId>
-        <version>2.12.1.Final</version>
+        <version>2.12.2.Final</version>
       </dependency>
       <!-- Standard dependencies used in GWT modules -->
       <dependency>
         <groupId>com.google.gwt</groupId>
         <artifactId>gwt-user</artifactId>
         <version>${gwt.version}</version>
+        <!-- Only needed at build time -->
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>com.google.gwt</groupId>
         <artifactId>gwt-servlet</artifactId>
-        <version>${gwt.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.gwt</groupId>
-        <artifactId>gwt-dev</artifactId>
         <version>${gwt.version}</version>
       </dependency>
       <dependency>
@@ -123,6 +120,8 @@
         <groupId>com.smartgwt</groupId>
         <artifactId>smartgwt</artifactId>
         <version>${smartgwt.version}</version>
+        <!-- Only needed at build time -->
+        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -149,8 +148,9 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>gwt-maven-plugin</artifactId>
           <version>${gwt.maven.plugin.version}</version>
-          <!-- We need to declare these dependencies because we use a newer version of GWT.
-            See http://mojo.codehaus.org/gwt-maven-plugin/user-guide/using-different-gwt-sdk-version.html -->
+          <!-- We declare these dependencies here in case we use different value for ${gwt.version} and
+               ${gwt.maven.plugin.version} variables.
+               See http://mojo.codehaus.org/gwt-maven-plugin/user-guide/using-different-gwt-sdk-version.html -->
           <dependencies>
             <dependency>
               <groupId>com.google.gwt</groupId>
@@ -218,34 +218,9 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-jcl-log4j-isolation</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <bannedDependencies>
-                  <searchTransitive>false</searchTransitive>
-                  <excludes>
-                    <!-- Ensure we don't depend on commons logging/log4j since we want all logging to be done through
-                         SLF4J -->
-                    <exclude>commons-logging:commons-logging</exclude>
-                    <exclude>log4j:log4j</exclude>
-                  </excludes>
-                </bannedDependencies>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
-    <!-- Needed to add support for the XAR packaging -->
     <extensions>
+      <!-- Needed to add support for the "xar" packaging -->
       <extension>
         <groupId>org.xwiki.commons</groupId>
         <artifactId>xwiki-commons-tool-xar-handlers</artifactId>
@@ -258,15 +233,12 @@
     <module>xwiki-platform-action</module>
     <module>xwiki-platform-activitystream</module>
     <module>xwiki-platform-administration</module>
-    <module>xwiki-platform-adwords</module>
-    <module>xwiki-platform-albatross</module>
-    <module>xwiki-platform-alexa</module>
     <module>xwiki-platform-annotations</module>
     <module>xwiki-platform-application-manager</module>
+    <module>xwiki-platform-appwithinminutes</module>
     <module>xwiki-platform-blog</module>
     <module>xwiki-platform-bridge</module>
     <module>xwiki-platform-cache</module>
-    <module>xwiki-platform-calendar</module>
     <module>xwiki-platform-captcha</module>
     <module>xwiki-platform-chart</module>
     <module>xwiki-platform-classloader</module>
@@ -276,14 +248,21 @@
     <module>xwiki-platform-containers</module>
     <module>xwiki-platform-crypto</module>
     <module>xwiki-platform-csrf</module>
+    <module>xwiki-platform-dashboard</module>
+    <module>xwiki-platform-display</module>
     <module>xwiki-platform-eventstream</module>
     <module>xwiki-platform-extension</module>
+    <module>xwiki-platform-faq</module>
     <module>xwiki-platform-formula</module>
     <module>xwiki-platform-gwt</module>
+    <module>xwiki-platform-index</module>
     <module>xwiki-platform-invitation</module>
     <module>xwiki-platform-ircbot</module>
+    <module>xwiki-platform-jira</module>
     <module>xwiki-platform-jodatime</module>
     <module>xwiki-platform-legacy</module>
+    <module>xwiki-platform-linkchecker</module>
+    <module>xwiki-platform-livetable</module>
     <module>xwiki-platform-mailsender</module>
     <module>xwiki-platform-messagestream</module>
     <module>xwiki-platform-model</module>
@@ -291,29 +270,28 @@
     <module>xwiki-platform-office</module>
     <module>xwiki-platform-oldcore</module>
     <module>xwiki-platform-panels</module>
-    <module>xwiki-platform-photoalbum</module>
     <module>xwiki-platform-query</module>
     <module>xwiki-platform-refactoring</module>
     <module>xwiki-platform-rendering</module>
     <module>xwiki-platform-rest</module>
-    <module>xwiki-platform-s5</module>
     <module>xwiki-platform-scheduler</module>
     <module>xwiki-platform-search</module>
     <module>xwiki-platform-selenium</module>
+    <module>xwiki-platform-sheet</module>
     <module>xwiki-platform-skin</module>
     <module>xwiki-platform-statistics</module>
     <module>xwiki-platform-store</module>
-    <module>xwiki-platform-jira</module>
     <module>xwiki-platform-tag</module>
     <module>xwiki-platform-test</module>
     <module>xwiki-platform-toucan</module>
+    <module>xwiki-platform-user</module>
     <module>xwiki-platform-url</module>
     <module>xwiki-platform-velocity</module>
     <module>xwiki-platform-watchlist</module>
     <module>xwiki-platform-web</module>
     <module>xwiki-platform-webdav</module>
     <module>xwiki-platform-wiki-manager</module>
-    <module>xwiki-platform-workstream</module>
+    <module>xwiki-platform-workspace</module>
     <module>xwiki-platform-wysiwyg</module>
     <module>xwiki-platform-xml</module>
     <module>xwiki-platform-xmlrpc</module>
@@ -333,34 +311,9 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>clirr-maven-plugin</artifactId>
             <configuration>
-              <skip>${xwiki.clirr.skip}</skip>
-              <comparisonVersion>${xwiki.clirr.previous.version}</comparisonVersion>
               <excludes>
                 <exclude>**/internal/**</exclude>
-                <exclude>**/test/**</exclude>
-                <!-- To be removed when we release 3.2 -->
-                <exclude>com/xpn/xwiki/plugin/lucene/IndexRebuilder</exclude>
-                <exclude>org/xwiki/bridge/AttachmentNameFactory</exclude>
-                <exclude>org/xwiki/bridge/AttachmentNameSerializer</exclude>
-                <exclude>org/xwiki/bridge/DocumentNameFactory</exclude>
-                <exclude>org/xwiki/bridge/DocumentNameSerializer</exclude>
-                <exclude>com/xpn/xwiki/plugin/wikimanager/WikiManager</exclude>
-                <exclude>com/xpn/xwiki/plugin/adwords/AdWordsPluginApi</exclude>
-                <exclude>com/xpn/xwiki/plugin/alexa/AlexaPluginApi</exclude>
-                <excludes>com/xpn/xwiki/api/Api</excludes>
-                <excludes>com/xpn/xwiki/api/Context</excludes>
-                <excludes>com/xpn/xwiki/api/Document</excludes>
-                <excludes>com/xpn/xwiki/api/StatsService</excludes>
-                <excludes>com/xpn/xwiki/api/StatsServiceCompatibilityAspect</excludes>
-                <excludes>com/xpn/xwiki/api/XWiki</excludes>
-                <excludes>com/xpn/xwiki/api/XWikiCompatibilityAspect</excludes>
-                <excludes>compatibility/com/xpn/xwiki/api/ApiCompatibilityAspect</excludes>
-                <excludes>compatibility/com/xpn/xwiki/api/ContextCompatibilityAspect</excludes>
-                <excludes>compatibility/com/xpn/xwiki/api/DocumentCompatibilityAspect</excludes>
-                <exclude>org/xwiki/eventstream/Event</exclude>
-                <exclude>com/xpn/xwiki/plugin/activitystream/api/ActivityEvent</exclude>
-                <exclude>com/xpn/xwiki/plugin/activitystream/plugin/ActivityEvent</exclude>
-                <exclude>org/xwiki/bridge/DocumentAccessBridge</exclude>
+                <!-- Remove the following excludes after we release 3.5 -->
               </excludes>
             </configuration>
           </plugin>
@@ -382,7 +335,7 @@
               <productionMode>true</productionMode>
               <style>DETAILED</style>
               <!-- HACK: We inject the GWT arguments in the out parameter because we have no other option. -->
-              <out>target/www-test -port 54321 -codeServerPort 12345 -userAgents gecko1_8</out>
+              <out>target/www-test -port 54321 -codeServerPort 12345</out>
             </configuration>
           </plugin>
         </plugins>

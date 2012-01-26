@@ -19,10 +19,10 @@
  */
 package org.xwiki.extension.wrap;
 
-import java.io.File;
 import java.util.Collection;
 
 import org.xwiki.extension.LocalExtension;
+import org.xwiki.extension.LocalExtensionFile;
 
 /**
  * Wrap a local extension.
@@ -40,55 +40,37 @@ public class WrappingLocalExtension<T extends LocalExtension> extends WrappingEx
         super(localExtension);
     }
 
+    // Extension
+
+    @Override
+    public LocalExtensionFile getFile()
+    {
+        return (LocalExtensionFile) super.getFile();
+    }
+
     // LocalExtension
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.LocalExtension#getFile()
-     */
-    public File getFile()
-    {
-        return getExtension().getFile();
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.LocalExtension#isInstalled()
-     */
+    @Override
     public boolean isInstalled()
     {
-        return getExtension().isInstalled();
+        return getWrapped().isInstalled();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.LocalExtension#isInstalled(java.lang.String)
-     */
+    @Override
     public boolean isInstalled(String namespace)
     {
-        return getExtension().isInstalled(namespace);
+        return getWrapped().isInstalled(namespace);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.LocalExtension#isDependency()
-     */
+    @Override
     public boolean isDependency()
     {
-        return getExtension().isDependency();
+        return getWrapped().isDependency();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.LocalExtension#getNamespaces()
-     */
+    @Override
     public Collection<String> getNamespaces()
     {
-        return getExtension().getNamespaces();
+        return getWrapped().getNamespaces();
     }
 }

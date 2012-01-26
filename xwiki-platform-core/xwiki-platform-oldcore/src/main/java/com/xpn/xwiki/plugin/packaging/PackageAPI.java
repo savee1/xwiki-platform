@@ -16,9 +16,7 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
  */
-
 package com.xpn.xwiki.plugin.packaging;
 
 import java.io.IOException;
@@ -256,7 +254,7 @@ public class PackageAPI extends Api
     
     /**
      * Load a package in memory from a byte array. It may be installed later using {@link #install()}.
-     * Your should prefer {@link #Import(InputStream, XWikiContext) which may avoid loading the package twice in memory.
+     * Your should prefer {@link #Import(InputStream, XWikiContext)} which may avoid loading the package twice in memory.
      *
      * @param file an byte array containing a zipped package file
      * @return an empty string, useless.

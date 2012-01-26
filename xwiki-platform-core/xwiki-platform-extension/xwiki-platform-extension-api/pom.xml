@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.xwiki.platform</groupId>
     <artifactId>xwiki-platform-extension</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.5-SNAPSHOT</version>
   </parent>
   <artifactId>xwiki-platform-extension-api</artifactId>
   <name>XWiki Platform - Extension - API</name>
@@ -56,23 +56,38 @@
     </dependency>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-properties</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-logging-api</artifactId>
       <version>${commons.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-api</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-container-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
-    
+
     <!-- Core extensions -->
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
-      <version>0.9.5</version>
+      <version>0.9.6</version>
       <exclusions>
         <!-- Useless for what we use in reflections -->
         <exclusion>
@@ -105,6 +120,12 @@
       <version>${commons.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-logging-logback</artifactId>
+      <version>${commons.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   
   <build>
@@ -133,8 +154,12 @@
         <configuration>
           <excludes>
               **/DefaultCoreExtensionScanner.java,
+              **/DefaultExtensionRepositoryManager.java,
+              **/DefaultExtensionSerializer.java,
               **/DefaultLocalExtensionRepository.java,
-              **/ExtensionSerializer.java
+              **/DefaultVersion.java,
+              **/InstallPlanJob.java,
+              **/UnmodifiableUtils.java
           </excludes>
         </configuration>
       </plugin>

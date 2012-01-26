@@ -27,11 +27,11 @@
   <parent>
     <groupId>org.xwiki.platform</groupId>
     <artifactId>xwiki-platform-core</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.5-SNAPSHOT</version>
   </parent>
   <artifactId>xwiki-platform-messagestream</artifactId>
   <name>XWiki Platform - Message Stream</name>
-  <description>Publish and display user status messages in different streams.</description>
+  <description>Publish and display user status messages in different streams</description>
   <dependencies>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
@@ -54,8 +54,8 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

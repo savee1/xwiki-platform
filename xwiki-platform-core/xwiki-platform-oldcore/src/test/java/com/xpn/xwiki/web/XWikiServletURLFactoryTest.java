@@ -1,3 +1,22 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
 package com.xpn.xwiki.web;
 
 import java.net.MalformedURLException;
@@ -175,7 +194,7 @@ public class XWikiServletURLFactoryTest extends AbstractBridgedXWikiComponentTes
     public void testCreateURLOnSubWiki() throws MalformedURLException
     {
         URL url = this.urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "wiki1", getContext());
-        assertEquals(new URL("http://wiki1server/xwiki/bin/view/Space/Page?param1=1#anchor"), url);
+        assertEquals(new URL("http://127.0.0.1/xwiki/wiki/wiki1server/view/Space/Page?param1=1#anchor"), url);
     }
 
     public void testCreateURLOnSubWikiInVirtualMode() throws MalformedURLException
@@ -183,7 +202,7 @@ public class XWikiServletURLFactoryTest extends AbstractBridgedXWikiComponentTes
         this.config.setProperty("xwiki.virtual", "1");
 
         URL url = this.urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "wiki1", getContext());
-        assertEquals(new URL("http://wiki1server/xwiki/bin/view/Space/Page?param1=1#anchor"), url);
+        assertEquals(new URL("http://127.0.0.1/xwiki/wiki/wiki1server/view/Space/Page?param1=1#anchor"), url);
     }
 
     public void testCreateURLOnMainWikiInPathMode() throws MalformedURLException
@@ -217,29 +236,58 @@ public class XWikiServletURLFactoryTest extends AbstractBridgedXWikiComponentTes
         assertEquals(new URL("https://localhost:8080/xwiki/wiki/wiki1server/view/Space/Page?param1=1#anchor"), url);
         assertEquals("/xwiki/wiki/wiki1server/view/Space/Page?param1=1#anchor", urlFactory.getURL(url, getContext()));
     }
+    
+    public void testCreateURLOnMainWikiInDomainMode() throws MalformedURLException
+    {
+        this.config.setProperty("xwiki.virtual.usepath", "0");
+
+        URL url = this.urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "xwiki", getContext());
+        assertEquals(new URL("http://127.0.0.1/xwiki/bin/view/Space/Page?param1=1#anchor"), url);
+    }
+    
+    public void testCreateURLOnSubWikiInDomainMode() throws MalformedURLException
+    {
+        this.config.setProperty("xwiki.virtual.usepath", "0");
+        
+        URL url = this.urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "wiki1", getContext());
+        assertEquals(new URL("http://wiki1server/xwiki/bin/view/Space/Page?param1=1#anchor"), url);
+    }
+
+    public void testCreateURLOnSubWikiInVirtualModeInDomainMode() throws MalformedURLException
+    {
+        this.config.setProperty("xwiki.virtual", "1");
+        this.config.setProperty("xwiki.virtual.usepath", "0");
+
+        URL url = this.urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "wiki1", getContext());
+        assertEquals(new URL("http://wiki1server/xwiki/bin/view/Space/Page?param1=1#anchor"), url);
+    }
 
     /**
      * Checks the URLs created on the main wiki when XWiki is behind a reverse proxy.
      * 
      * @throws MalformedURLException shouldn't happen
      */
-    public void testCreateURLOnMainWikiInReverseProxyMode() throws MalformedURLException
+    public void testCreateURLOnMainWikiInDomainModeInReverseProxyMode() throws MalformedURLException
     {
         secure = true;
         httpHeaders.put("x-forwarded-host", "www.xwiki.org");
         // Reinitialize the URL factory to take into account the new security level and HTTP headers.
         urlFactory.init(getContext());
 
+        config.setProperty("xwiki.virtual.usepath", "0");
+        
         URL url = urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "xwiki", getContext());
         assertEquals(new URL("https://www.xwiki.org/xwiki/bin/view/Space/Page?param1=1#anchor"), url);
         assertEquals("/xwiki/bin/view/Space/Page?param1=1#anchor", urlFactory.getURL(url, getContext()));
     }
 
-    public void testCreateURLOnSubWikiInReverseProxyMode() throws MalformedURLException
-    {
+    public void testCreateURLOnSubWikiInDomainModeInReverseProxyMode() throws MalformedURLException
+    {        
         httpHeaders.put("x-forwarded-host", "www.xwiki.org");
         // Reinitialize the URL factory to take into account the new HTTP headers.
         urlFactory.init(getContext());
+        
+        config.setProperty("xwiki.virtual.usepath", "0");
 
         URL url = urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "wiki1", getContext());
         assertEquals(new URL("http://wiki1server/xwiki/bin/view/Space/Page?param1=1#anchor"), url);
@@ -248,7 +296,7 @@ public class XWikiServletURLFactoryTest extends AbstractBridgedXWikiComponentTes
             getContext()));
     }
 
-    public void testCreateURLOnSubWikiInVirtualModeInReverseProxyMode() throws MalformedURLException
+    public void testCreateURLOnSubWikiInVirtualModeInDomainModeInReverseProxyMode() throws MalformedURLException
     {
         secure = true;
         httpHeaders.put("x-forwarded-host", "www.xwiki.org");
@@ -256,6 +304,7 @@ public class XWikiServletURLFactoryTest extends AbstractBridgedXWikiComponentTes
         urlFactory.init(getContext());
 
         config.setProperty("xwiki.virtual", "1");
+        config.setProperty("xwiki.virtual.usepath", "0");
 
         URL url = urlFactory.createURL("Space", "Page", "view", "param1=1", "anchor", "wiki1", getContext());
         assertEquals(new URL("https://wiki1server/xwiki/bin/view/Space/Page?param1=1#anchor"), url);

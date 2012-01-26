@@ -19,15 +19,16 @@
  */
 package org.xwiki.extension.wrap;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.xwiki.extension.Extension;
+import org.xwiki.extension.ExtensionAuthor;
 import org.xwiki.extension.ExtensionDependency;
-import org.xwiki.extension.ExtensionException;
+import org.xwiki.extension.ExtensionFile;
 import org.xwiki.extension.ExtensionId;
+import org.xwiki.extension.ExtensionLicense;
 import org.xwiki.extension.repository.ExtensionRepository;
 
 /**
@@ -36,149 +37,99 @@ import org.xwiki.extension.repository.ExtensionRepository;
  * @param <T> the extension type
  * @version $Id$
  */
-public class WrappingExtension<T extends Extension> implements Extension
+public class WrappingExtension<T extends Extension> extends AbstractWrappingObject<T> implements Extension
 {
-    /**
-     * @see #getExtension()
-     */
-    private T extension;
-
     /**
      * @param extension the wrapped extension
      */
     public WrappingExtension(T extension)
     {
-        this.extension = extension;
-    }
-
-    /**
-     * @return the wrapped extension
-     */
-    public T getExtension()
-    {
-        return this.extension;
+        super(extension);
     }
 
     // Extension
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getId()
-     */
+    @Override
     public ExtensionId getId()
     {
-        return getExtension().getId();
+        return getWrapped().getId();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getFeatures()
-     */
     @Override
     public Collection<String> getFeatures()
     {
-        return getExtension().getFeatures();
+        return getWrapped().getFeatures();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getType()
-     */
+    @Override
     public String getType()
     {
-        return getExtension().getType();
+        return getWrapped().getType();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getName()
-     */
+    @Override
     public String getName()
     {
-        return getExtension().getName();
+        return getWrapped().getName();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getDescription()
-     */
+    @Override
+    public Collection<ExtensionLicense> getLicenses()
+    {
+        return getWrapped().getLicenses();
+    }
+
+    @Override
+    public String getSummary()
+    {
+        return getWrapped().getSummary();
+    }
+
+    @Override
     public String getDescription()
     {
-        return getExtension().getDescription();
+        return getWrapped().getDescription();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getWebSite()
-     */
+    @Override
     public String getWebSite()
     {
-        return getExtension().getWebSite();
+        return getWrapped().getWebSite();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getAuthors()
-     */
-    public List<String> getAuthors()
+    @Override
+    public List<ExtensionAuthor> getAuthors()
     {
-        return getExtension().getAuthors();
+        return getWrapped().getAuthors();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getDependencies()
-     */
+    @Override
     public List< ? extends ExtensionDependency> getDependencies()
     {
-        return getExtension().getDependencies();
+        return getWrapped().getDependencies();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#download(java.io.File)
-     */
-    public void download(File file) throws ExtensionException
+    @Override
+    public ExtensionFile getFile()
     {
-        getExtension().download(file);
+        return getWrapped().getFile();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getRepository()
-     */
+    @Override
     public ExtensionRepository getRepository()
     {
-        return getExtension().getRepository();
+        return getWrapped().getRepository();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getProperties()
-     */
+    @Override
     public Map<String, Object> getProperties()
     {
-        return getExtension().getProperties();
+        return getWrapped().getProperties();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.Extension#getProperty(java.lang.String)
-     */
+    @Override
     public Object getProperty(String key)
     {
-        return getExtension().getProperty(key);
+        return getWrapped().getProperty(key);
     }
 }

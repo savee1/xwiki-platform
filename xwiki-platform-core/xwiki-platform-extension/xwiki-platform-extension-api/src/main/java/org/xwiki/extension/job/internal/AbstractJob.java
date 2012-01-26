@@ -22,13 +22,17 @@ package org.xwiki.extension.job.internal;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
+import org.xwiki.component.annotation.InstantiationStrategy;
+import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.extension.job.Job;
-import org.xwiki.extension.job.JobStatus;
-import org.xwiki.extension.job.PopLevelProgressEvent;
-import org.xwiki.extension.job.PushLevelProgressEvent;
 import org.xwiki.extension.job.Request;
-import org.xwiki.extension.job.StepProgressEvent;
+import org.xwiki.extension.job.event.JobFinishedEvent;
+import org.xwiki.extension.job.event.JobStartedEvent;
+import org.xwiki.extension.job.event.status.JobStatus;
+import org.xwiki.extension.job.event.status.PopLevelProgressEvent;
+import org.xwiki.extension.job.event.status.PushLevelProgressEvent;
+import org.xwiki.extension.job.event.status.StepProgressEvent;
 import org.xwiki.logging.LoggerManager;
 import org.xwiki.observation.ObservationManager;
 
@@ -38,6 +42,7 @@ import org.xwiki.observation.ObservationManager;
  * @param <R> the request type associated to the task
  * @version $Id$
  */
+@InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
 public abstract class AbstractJob<R extends Request> implements Job
 {
     /**
@@ -69,46 +74,60 @@ public abstract class AbstractJob<R extends Request> implements Job
      */
     protected DefaultJobStatus<R> status;
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.job.Job#getStatus()
-     */
+    @Override
     public JobStatus getStatus()
     {
         return this.status;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.job.Job#getRequest()
-     */
+    @Override
     public R getRequest()
     {
         return this.status.getRequest();
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.extension.job.Job#start(org.xwiki.extension.job.Request)
-     */
+    @Override
     public void start(Request request)
     {
-        this.status = new DefaultJobStatus<R>((R) request, getId(), this.observationManager, this.loggerManager);
+        this.observationManager.notify(new JobStartedEvent(getId(), request), this);
+
+        this.status = createNewStatus(castRequest(request));
 
         this.status.startListening();
 
+        Exception exception = null;
         try {
             start();
         } catch (Exception e) {
-            logger.error("Failed to start job", e);
+            logger.error("Exception thrown during job execution", e);
+            exception = e;
         } finally {
             this.status.stopListening();
 
-            this.status.setState(JobStatus.State.FINISHED);   
+            this.status.setState(JobStatus.State.FINISHED);
+
+            this.observationManager.notify(new JobFinishedEvent(getId(), request), this, exception);
         }
+    }
+
+    /**
+     * Should be overridden if R is not Request.
+     * 
+     * @param request the request
+     * @return the request in the proper extended type
+     */
+    protected R castRequest(Request request)
+    {
+        return (R) request;
+    }
+
+    /**
+     * @param request contains information related to the job to execute
+     * @return the status of the job
+     */
+    protected DefaultJobStatus<R> createNewStatus(R request)
+    {
+        return new DefaultJobStatus<R>((R) request, getId(), this.observationManager, this.loggerManager);
     }
 
     /**

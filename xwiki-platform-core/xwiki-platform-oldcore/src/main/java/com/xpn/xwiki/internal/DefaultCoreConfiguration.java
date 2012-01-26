@@ -20,17 +20,18 @@
 package com.xpn.xwiki.internal;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.component.annotation.Requirement;
 import org.xwiki.configuration.ConfigurationSource;
-
-import com.xpn.xwiki.CoreConfiguration;
 import org.xwiki.rendering.parser.ParseException;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.syntax.SyntaxFactory;
+
+import com.xpn.xwiki.CoreConfiguration;
 
 /**
  * Configuration for the Core module.
@@ -39,6 +40,7 @@ import org.xwiki.rendering.syntax.SyntaxFactory;
  * @since 1.8RC2
  */
 @Component
+@Singleton
 public class DefaultCoreConfiguration implements CoreConfiguration
 {
     /**
@@ -47,22 +49,25 @@ public class DefaultCoreConfiguration implements CoreConfiguration
     private static final String PREFIX = "core.";
 
     /**
-     * Defines from where to read the rendering configuration data. 
+     * Defines from where to read the rendering configuration data.
      */
-    @Requirement("all")
+    @Inject
+    @Named("all")
     private ConfigurationSource configuration;
 
     /**
      * Used to parse the syntax specified as a String in the configuration.
+     * 
      * @since 2.3M1
      */
-    @Requirement
+    @Inject
     private SyntaxFactory syntaxFactory;
 
     /**
-     * Main XWiki Properties configuration source, see {@link #getDefaultDocumentSyntax()}. 
+     * Main XWiki Properties configuration source, see {@link #getDefaultDocumentSyntax()}.
      */
-    @Requirement("xwikiproperties")
+    @Inject
+    @Named("xwikiproperties")
     private ConfigurationSource xwikiPropertiesConfiguration;
 
     /**
@@ -83,21 +88,22 @@ public class DefaultCoreConfiguration implements CoreConfiguration
         // When this is implemented modify the code below.
         String key = PREFIX + "defaultDocumentSyntax";
         String syntaxId = this.configuration.getProperty(key, String.class);
-        
+
         if (StringUtils.isEmpty(syntaxId)) {
-            syntaxId = this.xwikiPropertiesConfiguration.getProperty(key, Syntax.XWIKI_2_0.toIdString());
+            syntaxId = this.xwikiPropertiesConfiguration.getProperty(key, Syntax.XWIKI_2_1.toIdString());
         }
 
-        // Try to parse the syntax and if it fails defaults to the XWiki Syntax 2.0
+        // Try to parse the syntax and if it fails defaults to the XWiki Syntax 2.1
         Syntax syntax;
         try {
             syntax = this.syntaxFactory.createSyntaxFromIdString(syntaxId);
         } catch (ParseException e) {
-            this.logger.warn("Invalid default document Syntax [" + syntaxId + "], defaulting to ["
-                + Syntax.XWIKI_2_0.toIdString() + "] instead", e);
-            syntax = Syntax.XWIKI_2_0;
+            this.logger.warn(
+                "Invalid default document Syntax [" + syntaxId + "], defaulting to [" + Syntax.XWIKI_2_1.toIdString()
+                    + "] instead", e);
+            syntax = Syntax.XWIKI_2_1;
         }
 
-        return syntax; 
+        return syntax;
     }
 }
