@@ -30,6 +30,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
@@ -50,6 +51,7 @@ import org.xwiki.extension.UninstallException;
 import org.xwiki.extension.handler.internal.AbstractExtensionHandler;
 
 @Component("jar")
+@Singleton
 public class JarExtensionHandler extends AbstractExtensionHandler implements Initializable
 {
     @Inject
@@ -135,6 +137,7 @@ public class JarExtensionHandler extends AbstractExtensionHandler implements Ini
                     stackingComponentEventManager = new StackingComponentEventManager();
                     componentManager.setComponentEventManager(stackingComponentEventManager);
                 }
+                stackingComponentEventManager.shouldStack(true);
 
                 this.jarLoader.initialize(componentManager, classLoader, componentDeclarations);
             } finally {
@@ -205,12 +208,12 @@ public class JarExtensionHandler extends AbstractExtensionHandler implements Ini
                             componentDescriptor.getRole(), componentDescriptor.getRoleHint());
                     }
                 } catch (ClassNotFoundException e) {
-                    this.logger
-                        .error("Failed to load class [{}]", componentDeclaration.getImplementationClassName(), e);
+                    this.logger.warn("Can't find any existing component with class [{}]. Ignoring it.",
+                        componentDeclaration.getImplementationClassName());
                 }
             }
         } catch (Exception e) {
-            throw new UninstallException("Failed to load jar file components", e);
+            throw new UninstallException("Failed to unload jar file components", e);
         }
     }
 }
