@@ -19,9 +19,11 @@
  */
 package org.xwiki.extension.repository.internal;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
@@ -36,6 +38,7 @@ import org.xwiki.extension.repository.ExtensionRepositorySource;
  */
 @Component
 @Singleton
+@Named("extension.configuration")
 public class ConfigurationExtensionRepositorySource implements ExtensionRepositorySource
 {
     /**
@@ -47,6 +50,8 @@ public class ConfigurationExtensionRepositorySource implements ExtensionReposito
     @Override
     public List<ExtensionRepositoryId> getExtensionRepositories()
     {
-        return this.configuration.getRepositories();
+        List<ExtensionRepositoryId> repositories = this.configuration.getRepositories();
+
+        return repositories != null ? repositories : Collections.<ExtensionRepositoryId> emptyList();
     }
 }

@@ -26,18 +26,31 @@ import org.xwiki.extension.version.internal.DefaultVersionConstraint;
 
 public class AetherExtensionDependency extends AbstractExtensionDependency
 {
-    private Dependency aetherDependency;
+    public static final String PKEY_AETHER_DEPENDENCY = "aether.Dependency";
 
-    public AetherExtensionDependency(Dependency aetherDependency) throws InvalidVersionRangeException
+    public static final String PKEY_MAVEN_DEPENDENCY = "maven.Dependency";
+
+    public AetherExtensionDependency(Dependency aetherDependency, org.apache.maven.model.Dependency mavenDependency)
+        throws InvalidVersionRangeException
     {
         super(AetherUtils.createExtensionId(aetherDependency.getArtifact()).getId(), new DefaultVersionConstraint(
             aetherDependency.getArtifact().getVersion()));
 
-        this.aetherDependency = aetherDependency;
+        // custom properties
+        putProperty(PKEY_AETHER_DEPENDENCY, aetherDependency);
+        putProperty(PKEY_MAVEN_DEPENDENCY, mavenDependency);
     }
 
     public Dependency getAetherDependency()
     {
-        return this.aetherDependency;
+        return (Dependency) this.getProperty(PKEY_AETHER_DEPENDENCY);
+    }
+
+    /**
+     * @return the Maven dependency object
+     */
+    public Dependency getMavenDependency()
+    {
+        return (Dependency) getProperty(PKEY_MAVEN_DEPENDENCY);
     }
 }

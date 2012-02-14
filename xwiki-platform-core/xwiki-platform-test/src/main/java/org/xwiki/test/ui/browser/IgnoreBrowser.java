@@ -17,15 +17,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.container;
+package org.xwiki.test.ui.browser;
 
-public interface ContainerFactory
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Annotation to exclude running a test for a given list of browsers.
+ *
+ * @version $Id$
+ * @since 3.5M1
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+public @interface IgnoreBrowser
 {
-    Request createRequest(Object... objects);
-    
-    Response createResponse(Object... objects);
-    
-    Session createSession(Object... objects);
-    
-    ApplicationContext createApplicationContext(Object... objects);
+    /**
+     * @return the list of browser names to ignore
+     */
+    String[] value();
+
+    /**
+     * @return the reason this test is ignored
+     */
+    String reason() default "";
 }

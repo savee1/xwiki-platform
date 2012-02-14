@@ -26,6 +26,7 @@ import java.util.Arrays;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.xwiki.environment.Environment;
 import org.xwiki.extension.ExtensionManagerConfiguration;
 import org.xwiki.extension.repository.ExtensionRepositoryId;
 import org.xwiki.test.AbstractComponentTestCase;
@@ -39,6 +40,9 @@ public class DefaultExtensionManagerConfigurationTest extends AbstractComponentT
     {
         super.setUp();
 
+        // Register a Mocked Environment since we need to provide one.
+        registerMockComponent(Environment.class);
+        
         this.configuration = getComponentManager().lookup(ExtensionManagerConfiguration.class);
     }
 
@@ -54,8 +58,6 @@ public class DefaultExtensionManagerConfigurationTest extends AbstractComponentT
     @Test
     public void testGetRepositoriesEmpty() throws URISyntaxException
     {
-        Assert.assertEquals(Arrays.asList(new ExtensionRepositoryId("extensions.xwiki.org", "xwiki", new URI(
-            "http://extensions.xwiki.org/xwiki/rest/")), new ExtensionRepositoryId("maven-xwiki", "maven", new URI(
-            "http://nexus.xwiki.org/nexus/content/groups/public"))), this.configuration.getRepositories());
+        Assert.assertEquals(null, this.configuration.getRepositories());
     }
 }

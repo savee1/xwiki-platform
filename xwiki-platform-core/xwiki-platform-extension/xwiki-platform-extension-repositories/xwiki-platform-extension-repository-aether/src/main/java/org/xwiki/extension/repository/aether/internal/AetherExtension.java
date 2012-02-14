@@ -41,4 +41,12 @@ public class AetherExtension extends AbstractExtension
         putProperty(PKEY_AETHER_ATIFACT, artifact);
         putProperty(PKEY_MAVEN_MODEL, mavenModel);
     }
+
+    /**
+     * @return the Maven model object
+     */
+    public Model getMavenModel()
+    {
+        return (Model) getProperty(PKEY_MAVEN_MODEL);
+    }
 }
