@@ -91,12 +91,12 @@ import org.xwiki.model.reference.ObjectReferenceResolver;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.rendering.block.Block;
-import org.xwiki.rendering.block.Block.Axes;
 import org.xwiki.rendering.block.HeaderBlock;
 import org.xwiki.rendering.block.LinkBlock;
 import org.xwiki.rendering.block.MacroBlock;
 import org.xwiki.rendering.block.SectionBlock;
 import org.xwiki.rendering.block.XDOM;
+import org.xwiki.rendering.block.Block.Axes;
 import org.xwiki.rendering.block.match.ClassBlockMatcher;
 import org.xwiki.rendering.block.match.MacroBlockMatcher;
 import org.xwiki.rendering.listener.HeaderLevel;
@@ -362,19 +362,19 @@ public class XWikiDocument implements DocumentModelBridge
      * blanks.
      */
     @SuppressWarnings("unchecked")
-    private DocumentReferenceResolver<String> currentDocumentReferenceResolver = Utils.getComponent(
-        DocumentReferenceResolver.class, "current");
+    private DocumentReferenceResolver<String> currentDocumentReferenceResolver =
+        Utils.getComponent(DocumentReferenceResolver.class, "current");
 
     /**
      * Used to resolve a string into a proper Document Reference.
      */
     @SuppressWarnings("unchecked")
-    private DocumentReferenceResolver<String> explicitDocumentReferenceResolver = Utils.getComponent(
-        DocumentReferenceResolver.class, "explicit");
+    private DocumentReferenceResolver<String> explicitDocumentReferenceResolver =
+        Utils.getComponent(DocumentReferenceResolver.class, "explicit");
 
     @SuppressWarnings("unchecked")
-    private EntityReferenceResolver<String> xClassEntityReferenceResolver = Utils.getComponent(
-        EntityReferenceResolver.class, "xclass");
+    private EntityReferenceResolver<String> xClassEntityReferenceResolver =
+        Utils.getComponent(EntityReferenceResolver.class, "xclass");
 
     /**
      * Used to resolve a string into a proper Document Reference using the current document's reference to fill the
@@ -382,66 +382,80 @@ public class XWikiDocument implements DocumentModelBridge
      * the current wiki is used instead of the current document reference's wiki.
      */
     @SuppressWarnings("unchecked")
-    private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver = Utils.getComponent(
-        DocumentReferenceResolver.class, "currentmixed");
+    private DocumentReferenceResolver<String> currentMixedDocumentReferenceResolver =
+        Utils.getComponent(DocumentReferenceResolver.class, "currentmixed");
 
     /**
      * Used to normalize references.
      */
     @SuppressWarnings("unchecked")
-    private DocumentReferenceResolver<EntityReference> currentReferenceDocumentReferenceResolver = Utils.getComponent(
-        DocumentReferenceResolver.class, "current/reference");
+    private DocumentReferenceResolver<EntityReference> currentReferenceDocumentReferenceResolver =
+        Utils.getComponent(DocumentReferenceResolver.class, "current/reference");
 
     /**
      * Used to normalize references.
      */
     @SuppressWarnings("unchecked")
-    private DocumentReferenceResolver<EntityReference> explicitReferenceDocumentReferenceResolver = Utils.getComponent(
-        DocumentReferenceResolver.class, "explicit/reference");
+    private DocumentReferenceResolver<EntityReference> explicitReferenceDocumentReferenceResolver =
+        Utils.getComponent(DocumentReferenceResolver.class, "explicit/reference");
 
     /**
      * Used to resolve parent references in the way they are stored externally (database, xml, etc), ie relative or
      * absolute.
      */
     @SuppressWarnings("unchecked")
-    private EntityReferenceResolver<String> relativeEntityReferenceResolver = Utils.getComponent(
-        EntityReferenceResolver.class, "relative");
+    private EntityReferenceResolver<String> relativeEntityReferenceResolver =
+        Utils.getComponent(EntityReferenceResolver.class, "relative");
 
     /**
      * Used to convert a proper Document Reference to string (compact form).
      */
     @SuppressWarnings("unchecked")
-    private EntityReferenceSerializer<String> compactEntityReferenceSerializer = Utils.getComponent(
-        EntityReferenceSerializer.class, "compact");
+    private EntityReferenceSerializer<String> compactEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class, "compact");
 
     /**
      * Used to convert a proper Document Reference to string (standard form).
      */
     @SuppressWarnings("unchecked")
-    private EntityReferenceSerializer<String> defaultEntityReferenceSerializer = Utils
-        .getComponent(EntityReferenceSerializer.class);
+    private EntityReferenceSerializer<String> defaultEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class);
 
     /**
      * Used to convert a Document Reference to string (compact form without the wiki part if it matches the current
      * wiki).
      */
     @SuppressWarnings("unchecked")
-    private EntityReferenceSerializer<String> compactWikiEntityReferenceSerializer = Utils.getComponent(
-        EntityReferenceSerializer.class, "compactwiki");
+    private EntityReferenceSerializer<String> compactWikiEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class, "compactwiki");
 
     /**
      * Used to convert a proper Document Reference to a string but without the wiki name.
      */
     @SuppressWarnings("unchecked")
-    private EntityReferenceSerializer<String> localEntityReferenceSerializer = Utils.getComponent(
-        EntityReferenceSerializer.class, "local");
+    private EntityReferenceSerializer<String> localEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class, "local");
+
+    /**
+     * Used to compute document identifier.
+     */
+    @SuppressWarnings("unchecked")
+    private EntityReferenceSerializer<String> uidStringEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class, "uid");
+
+    /**
+     * Used to compute document identifier.
+     */
+    @SuppressWarnings("unchecked")
+    private EntityReferenceSerializer<String> localUidStringEntityReferenceSerializer =
+        Utils.getComponent(EntityReferenceSerializer.class, "local/uid");
 
     /**
      * Used to normalize references.
      */
     @SuppressWarnings("unchecked")
-    private ObjectReferenceResolver<EntityReference> currentReferenceObjectReferenceResolver = Utils.getComponent(
-        ObjectReferenceResolver.class, "current/reference");
+    private ObjectReferenceResolver<EntityReference> currentReferenceObjectReferenceResolver =
+        Utils.getComponent(ObjectReferenceResolver.class, "current/reference");
 
     /**
      * Used to create proper {@link Syntax} objects.
@@ -549,6 +563,68 @@ public class XWikiDocument implements DocumentModelBridge
     }
 
     /**
+     * Temporary helper to produce a local/uid serialization of this document reference, including the language.
+     * Only translated document will have language appended.
+     * FIXME: when reference contains locale, this is no more needed.
+     *
+     * @return a unique name (in a wiki) (5:space4:name2:lg)
+     */
+    private String getLocalKey()
+    {
+        final String localUid = this.localUidStringEntityReferenceSerializer.serialize(getDocumentReference());
+
+        if (StringUtils.isEmpty(this.language)) {
+            return localUid;
+        } else {
+            return appendLanguage(new StringBuilder(64).append(localUid)).toString();
+        }
+    }
+
+    /**
+     * Temporary helper to produce a uid serialization of this document reference, including the language.
+     * Only translated document will have language appended.
+     * FIXME: when reference contains locale, this is no more needed.
+     *
+     * @return a unique name (8:wikiname5:space4:name2:lg or 8:wikiname5:space4:name)
+     * @since 4.0M1
+     */
+    public String getKey()
+    {
+        final String localUid = this.uidStringEntityReferenceSerializer.serialize(getDocumentReference());
+
+        if (StringUtils.isEmpty(this.language)) {
+            return localUid;
+        } else {
+            return appendLanguage(new StringBuilder(64).append(localUid)).toString();
+        }
+    }
+
+    /**
+     * Temporary helper that append the language of this document to the provide string buffer.
+     * FIXME: when reference contains locale, this is no more needed.
+     *
+     * @param sb a StringBuilder where to append the language key
+     * @return the StringBuilder appended with the language of this document formatted like 2:lg
+     * @see #getLocalKey()
+     */
+    private StringBuilder appendLanguage(StringBuilder sb)
+    {
+        if (StringUtils.isEmpty(this.language)) {
+            return sb;
+        }
+
+        return sb.append(this.language.length())
+            .append(':')
+            .append(this.language);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return (int) Util.getHash(getLocalKey());
+    }
+
+    /**
      * @return the unique id used to represent the document, as a number. This id is technical and is equivalent to the
      *         Document Reference + the language of the Document. This technical id should only be used for the storage
      *         layer and all user APIs should instead use Document Reference and language as they are model-related
@@ -556,29 +632,16 @@ public class XWikiDocument implements DocumentModelBridge
      */
     public long getId()
     {
-        // TODO: The implemented below doesn't guarantee a unique id since it uses the hashCode() method which doesn't
-        // guarantee unicity. From the JDK's javadoc: "It is not required that if two objects are unequal according to
-        // the equals(java.lang.Object) method, then calling the hashCode method on each of the two objects must
-        // produce distinct integer results.". This needs to be fixed to produce a real unique id since otherwise we
-        // can have clashes in the database.
+        // TODO: Ensure uniqueness of the generated id
+        // The implementation doesn't guarantee a unique id since it uses a hashing method which never guarantee
+        // uniqueness. However, the hash algorithm is really unlikely to collide in a given wiki. This needs to be
+        // fixed to produce a real unique id since otherwise we can have clashes in the database.
 
         // Note: We don't use the wiki name in the document id's computation. The main historical reason is so
         // that all things saved in a given wiki's database are always stored relative to that wiki so that
         // changing that wiki's name is simpler.
-        // It is important to note that a document called "Main.WebHome:es" will have
-        // the same cache ID as the Spanish version of "Main.WebHome".
-        // This is a problem which must be fixed here and in XWikiCacheStore#getKey()
-        // simultaneously.
-        // See: http://jira.xwiki.org/jira/browse/XWIKI-6169
-        if ((this.language == null) || this.language.trim().equals("")) {
-            this.id = this.localEntityReferenceSerializer.serialize(getDocumentReference()).hashCode();
-        } else {
-            this.id =
-                (this.localEntityReferenceSerializer.serialize(getDocumentReference()) + ":" + this.language)
-                    .hashCode();
-        }
 
-        return this.id;
+        return (this.id = Util.getHash(getLocalKey()));
     }
 
     /**
@@ -969,12 +1032,7 @@ public class XWikiDocument implements DocumentModelBridge
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.bridge.DocumentModelBridge#getDocumentReference()
-     * @since 2.2M1
-     */
+    @Override
     public DocumentReference getDocumentReference()
     {
         return this.documentReference;
@@ -5301,7 +5359,7 @@ public class XWikiDocument implements DocumentModelBridge
     /**
      * Return the document in the provided language.
      * <p>
-     * This method return this if the provided language does not exists. See 
+     * This method return this if the provided language does not exists. See
      * 
      * @param language the language of the documetn to return
      * @param context the XWiki Context
@@ -5902,6 +5960,13 @@ public class XWikiDocument implements DocumentModelBridge
         loadArchive(context);
 
         XWikiDocument newdoc = duplicate(newDocumentReference);
+
+        // If the copied document has a title set to the original page name then set the new title to be the new page
+        // name.
+        if (StringUtils.equals(newdoc.getTitle(), this.getDocumentReference().getName())) {
+            newdoc.setTitle(newDocumentReference.getName());
+        }
+
         newdoc.setOriginalDocument(null);
         newdoc.setContentDirty(true);
         newdoc.getXClass().setDocumentReference(newDocumentReference);

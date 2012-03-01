@@ -753,7 +753,8 @@ public class XWiki implements EventListener
         // Prepare the store
         setConfig(config);
 
-        XWikiStoreInterface basestore = Utils.getComponent(XWikiStoreInterface.class, Param("xwiki.store.main.hint","hibernate"));
+        XWikiStoreInterface basestore =
+            Utils.getComponent(XWikiStoreInterface.class, Param("xwiki.store.main.hint", "hibernate"));
 
         // Check if we need to use the cache store..
         boolean nocache = "0".equals(Param("xwiki.store.cache", "1"));
@@ -768,22 +769,22 @@ public class XWiki implements EventListener
             "com.xpn.xwiki.criteria.impl.XWikiCriteriaServiceImpl", context));
 
         setAttachmentStore(Utils
-            .getComponent(XWikiAttachmentStoreInterface.class, Param("xwiki.store.attachment.hint","hibernate")));
+            .getComponent(XWikiAttachmentStoreInterface.class, Param("xwiki.store.attachment.hint", "hibernate")));
 
         setVersioningStore(Utils
-            .getComponent(XWikiVersioningStoreInterface.class, Param("xwiki.store.versioning.hint","hibernate")));
+            .getComponent(XWikiVersioningStoreInterface.class, Param("xwiki.store.versioning.hint", "hibernate")));
 
         setAttachmentVersioningStore(Utils.getComponent(AttachmentVersioningStore.class,
-            hasAttachmentVersioning(context) ? Param("xwiki.store.attachment.versioning.hint","hibernate") : "void"));
+            hasAttachmentVersioning(context) ? Param("xwiki.store.attachment.versioning.hint", "hibernate") : "void"));
 
         if (hasRecycleBin(context)) {
             setRecycleBinStore(Utils.getComponent(XWikiRecycleBinStoreInterface.class,
-                Param("xwiki.store.recyclebin.hint","hibernate")));
+                Param("xwiki.store.recyclebin.hint", "hibernate")));
         }
 
         if (hasAttachmentRecycleBin(context)) {
             setAttachmentRecycleBinStore(Utils.getComponent(AttachmentRecycleBinStore.class,
-                Param("xwiki.store.attachment.recyclebin.hint","hibernate")));
+                Param("xwiki.store.attachment.recyclebin.hint", "hibernate")));
         }
 
         resetRenderingEngine(context);
@@ -1774,16 +1775,13 @@ public class XWiki implements EventListener
                 }
             }
         } catch (Exception ex) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Exception while parsing template [" + template + "] from skin", ex);
-            }
+            LOGGER.debug("Exception while parsing template [{}] from skin", template, ex);
         }
 
         // Prevent inclusion of templates from other directories
         template = URI.create("/templates/" + template).normalize().toString();
         if (!template.startsWith("/templates/")) {
-            LOGGER.warn("Illegal access, tried to use file [" + template
-                + "] as a template. Possible break-in attempt!");
+            LOGGER.warn("Direct access to template file [{}] refused. Possible break-in attempt!", template);
             return "";
         }
 
@@ -2929,6 +2927,7 @@ public class XWiki implements EventListener
      * @deprecated since 3.1M2 edit mode class should be used for this purpose, not the sheet class
      * @see #getEditModeClass(XWikiContext)
      */
+    @Deprecated
     public BaseClass getSheetClass(XWikiContext context) throws XWikiException
     {
         XWikiDocument doc =
@@ -7188,12 +7187,7 @@ public class XWiki implements EventListener
         return "1".equals(Param("xwiki.title.compatibility", "0"));
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.observation.EventListener#onEvent(org.xwiki.observation.event.Event, java.lang.Object,
-     *      java.lang.Object)
-     */
+    @Override
     public void onEvent(Event event, Object source, Object data)
     {
         XWikiDocument doc = (XWikiDocument) source;

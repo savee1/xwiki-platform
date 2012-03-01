@@ -111,11 +111,6 @@ public class CreateAction extends XWikiAction
      */
     private static final String VELOCITY_CONTEXT_KEY = "vcontext";
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see XWikiAction#render(XWikiContext)
-     */
     @Override
     public String render(XWikiContext context) throws XWikiException
     {
@@ -446,6 +441,9 @@ public class CreateAction extends XWikiAction
             if (title != null) {
                 newDocument.setTitle(title);
             }
+            DocumentReference currentUserReference = context.getUserReference();
+            newDocument.setAuthorReference(currentUserReference);
+            newDocument.setCreatorReference(currentUserReference);
 
             xwiki.saveDocument(newDocument, context);
             editMode = newDocument.getDefaultEditMode(context);

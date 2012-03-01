@@ -20,6 +20,7 @@
 package org.xwiki.extension.job;
 
 import org.xwiki.component.annotation.ComponentRole;
+import org.xwiki.extension.job.event.status.JobStatus;
 
 /**
  * Proxy used to simplify execution of jobs.
@@ -30,9 +31,17 @@ import org.xwiki.component.annotation.ComponentRole;
 public interface JobManager
 {
     /**
-     * @return the job currently running or the latest job
+     * @return the job currently running or the latest job, null if there is no job
      */
     Job getCurrentJob();
+
+    /**
+     * Return job status corresponding to the provided id from the current executed job or stored history.
+     * 
+     * @param id the id of the job
+     * @return the job status corresponding to the provided job id, null if none can be found
+     */
+    JobStatus getJobStatus(String id);
 
     /**
      * Start a new job with the provided identifier.

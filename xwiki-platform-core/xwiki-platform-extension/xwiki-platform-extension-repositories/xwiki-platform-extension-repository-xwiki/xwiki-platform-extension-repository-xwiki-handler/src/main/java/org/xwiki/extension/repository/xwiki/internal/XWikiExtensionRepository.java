@@ -21,6 +21,7 @@ package org.xwiki.extension.repository.xwiki.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.ProxySelectorRoutePlanner;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.CoreProtocolPNames;
 import org.restlet.data.MediaType;
@@ -39,7 +41,6 @@ import org.xwiki.extension.ExtensionDependency;
 import org.xwiki.extension.ExtensionId;
 import org.xwiki.extension.ExtensionLicenseManager;
 import org.xwiki.extension.ExtensionManagerConfiguration;
-import org.xwiki.extension.InvalidExtensionException;
 import org.xwiki.extension.ResolveException;
 import org.xwiki.extension.repository.AbstractExtensionRepository;
 import org.xwiki.extension.repository.ExtensionRepositoryId;
@@ -134,11 +135,16 @@ public class XWikiExtensionRepository extends AbstractExtensionRepository implem
 
     private HttpClient createClient()
     {
-        HttpClient httpClient = new DefaultHttpClient();
+        DefaultHttpClient httpClient = new DefaultHttpClient();
 
         httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, this.configuration.getUserAgent());
         httpClient.getParams().setIntParameter(CoreConnectionPNames.SO_TIMEOUT, 60000);
         httpClient.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10000);
+
+        ProxySelectorRoutePlanner routePlanner =
+            new ProxySelectorRoutePlanner(httpClient.getConnectionManager().getSchemeRegistry(),
+                ProxySelector.getDefault());
+        httpClient.setRoutePlanner(routePlanner);
 
         return httpClient;
     }
@@ -249,11 +255,7 @@ public class XWikiExtensionRepository extends AbstractExtensionRepository implem
 
         List<Extension> extensions = new ArrayList<Extension>(restExtensions.getExtensions().size());
         for (ExtensionVersion restExtension : restExtensions.getExtensions()) {
-            try {
-                extensions.add(new XWikiExtension(this, restExtension, this.licenseManager));
-            } catch (InvalidExtensionException e) {
-                throw new SearchException("Found invalid extension", e);
-            }
+            extensions.add(new XWikiExtension(this, restExtension, this.licenseManager));
         }
 
         return new CollectionIterableResult<Extension>(restExtensions.getTotalHits(), restExtensions.getOffset(),

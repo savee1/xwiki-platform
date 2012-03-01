@@ -98,22 +98,12 @@ public class BaseObject extends BaseCollection<BaseObjectReference> implements O
         setDocumentReference(reference);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseElement#createReference()
-     */
     @Override
     protected BaseObjectReference createReference()
     {
         return new BaseObjectReference(getXClassReference(), getNumber(), getDocumentReference());
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#setNumber(int)
-     */
     @Override
     public void setNumber(int number)
     {
@@ -123,11 +113,6 @@ public class BaseObject extends BaseCollection<BaseObjectReference> implements O
         this.referenceCache = null;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#setXClassReference(org.xwiki.model.reference.EntityReference)
-     */
     @Override
     public void setXClassReference(EntityReference xClassReference)
     {
@@ -135,33 +120,6 @@ public class BaseObject extends BaseCollection<BaseObjectReference> implements O
 
         // Reset reference cache
         this.referenceCache = null;
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#hashCode()
-     */
-    @Override
-    public int hashCode()
-    {
-        String str = getName() + getClassName();
-        int nb = getNumber();
-        if (nb > 0) {
-            str += "_" + nb;
-        }
-
-        return str.hashCode();
-    }
-
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#setId(int)
-     */
-    @Override
-    public void setId(int id)
-    {
     }
 
     public void displayHidden(StringBuffer buffer, String name, String prefix, XWikiContext context)
@@ -218,11 +176,6 @@ public class BaseObject extends BaseCollection<BaseObjectReference> implements O
         return displayEdit(name, "", context);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#clone()
-     */
     @Override
     public BaseObject clone()
     {
@@ -257,11 +210,6 @@ public class BaseObject extends BaseCollection<BaseObjectReference> implements O
         return object;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj)
     {
@@ -281,11 +229,6 @@ public class BaseObject extends BaseCollection<BaseObjectReference> implements O
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.xpn.xwiki.objects.BaseCollection#toXML(com.xpn.xwiki.objects.classes.BaseClass)
-     */
     @Override
     public Element toXML(BaseClass bclass)
     {
