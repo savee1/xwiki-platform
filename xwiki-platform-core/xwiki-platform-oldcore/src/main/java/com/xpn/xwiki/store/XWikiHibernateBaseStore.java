@@ -19,16 +19,27 @@
  */
 package com.xpn.xwiki.store;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -44,8 +55,12 @@ import org.hibernate.jdbc.BorrowedConnectionProxy;
 import org.hibernate.jdbc.ConnectionManager;
 import org.hibernate.mapping.Table;
 import org.hibernate.tool.hbm2ddl.DatabaseMetadata;
+import org.hibernate.util.ConfigHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.context.Execution;
@@ -81,6 +96,8 @@ public class XWikiHibernateBaseStore implements Initializable
     private DataMigrationManager dataMigrationManager;
 
     private String hibpath = "/WEB-INF/hibernate.cfg.xml";
+
+    private String HIBERNATE_ENV_OVERRIDES = "/WEB-INF/hibernate-env-overrides.properties";
 
     /**
      * Key in XWikiContext for access to current hibernate database name.
@@ -153,6 +170,7 @@ public class XWikiHibernateBaseStore implements Initializable
     /**
      * Retrieve the current database product name. If no current session is available, obtains a connection from the
      * hibernate connection provider attached to the current session factory.
+     * 
      * @return the database product name
      * @since 4.0M1
      */
@@ -172,8 +190,7 @@ public class XWikiHibernateBaseStore implements Initializable
                 if (connection != null) {
                     try {
                         connectionProvider.closeConnection(connection);
-                    }
-                    catch (SQLException ignored) {
+                    } catch (SQLException ignored) {
                         // do not care, return UNKNOWN
                     }
                 }
@@ -181,7 +198,7 @@ public class XWikiHibernateBaseStore implements Initializable
         }
 
         return product;
-   }
+    }
 
     /**
      * @return the database product name
@@ -194,13 +211,127 @@ public class XWikiHibernateBaseStore implements Initializable
     }
 
     /**
+     * Read the Hibernate configuration and overrides properties as specified in the HIBERNATE_ENV_OVERRIDES file.
+     * 
+     * @return The overridden XML document representing the Hibernate configuration.
+     * @throws Exception In case of error.
+     */
+    private Document getHibernateConfiguration(XWikiContext context) throws Exception
+    {
+        Properties overrides = new Properties();
+
+        InputStream is = context.getEngineContext().getResourceAsStream(HIBERNATE_ENV_OVERRIDES);
+        if (is != null) {
+            overrides.load(is);
+        }
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder loader = factory.newDocumentBuilder();
+
+        is = context.getEngineContext().getResourceAsStream(getPath());
+
+        Document document = loader.parse(is);
+
+        overrideHibernateProperties(document.getDocumentElement(), overrides, context);
+
+        return document;
+    }
+
+    /**
+     * Check a property by looking in different environments.
+     * 
+     * @param property The property name.
+     * @param context The XWiki context.
+     * @return The property value. null if there is no property with that name defined.
+     */
+    private String getProperty(String property, XWikiContext context)
+    {
+        String value = System.getenv(property);
+        if (value == null) {
+            value = System.getProperty(property);
+            if (value == null) {
+                value = (String) context.getEngineContext().getAttribute(property);
+            }
+        }
+
+        return value;
+    }
+
+    /**
+     * Do a depth first visit of the XML and override all the &lt;property&gt; values to that passed as an argument.
+     * 
+     * @param node The node where to start the visit.
+     * @param overrides A list of properties to be overridden, and their respective values.
+     */
+    private void overrideHibernateProperties(Node node, Properties overrides, XWikiContext context)
+    {
+        if ("property".equals(node.getNodeName())) {
+            Node name = node.getAttributes().getNamedItem("name");
+            if (name != null) {
+                String overrideVariableName = overrides.getProperty(name.getTextContent());
+                if (overrideVariableName != null) {
+                    String overrideValue = getProperty(overrideVariableName, context);
+                    if (overrideValue != null) {
+                        LOGGER.info(String.format(
+                            "Overriding Hibernate configuration %s using environment variable %s. Value: %s",
+                            name.getTextContent(), overrideVariableName, overrideValue));
+
+                        node.setTextContent(overrideValue);
+                    }
+                }
+            }
+        }
+
+        NodeList childNodes = node.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            overrideHibernateProperties(childNodes.item(i), overrides, context);
+        }
+    }
+
+    /**
+     * Dump an XML document for debugging purposes.
+     * 
+     * @param document The document.
+     * @return A string with the dump of the document.
+     */
+    private String dumpXML(Document document)
+    {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        TransformerFactory tfactory = TransformerFactory.newInstance();
+        Transformer serializer;
+        try {
+            serializer = tfactory.newTransformer();
+            // Setup indenting to "pretty print"
+            serializer.setOutputProperty(OutputKeys.INDENT, "yes");
+            serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+            serializer.transform(new DOMSource(document), new StreamResult(baos));
+
+            return new String(baos.toByteArray());
+        } catch (TransformerException e) {
+            // this is fatal, just dump the stack and throw a runtime exception
+            e.printStackTrace();
+
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
      * Allows to init the hibernate configuration
      * 
      * @throws org.hibernate.HibernateException
      */
     private synchronized void initHibernate(XWikiContext context) throws HibernateException
     {
-        getConfiguration().configure(getPath());
+        try {
+            Document configuration = getHibernateConfiguration(context);
+
+            LOGGER.debug(dumpXML(configuration));
+
+            getConfiguration().configure(configuration);
+        } catch (Exception e) {
+            throw new HibernateException(e);
+        }
 
         XWiki wiki = context.getWiki();
         if (wiki != null && wiki.Param("xwiki.db") != null && !wiki.isVirtualMode()) {
@@ -746,14 +877,13 @@ public class XWikiHibernateBaseStore implements Initializable
 
     /**
      * Begins a transaction with a specific SessionFactory.
-     *
+     * 
      * @param sfactory the session factory used to begin a new session if none are available
      * @param context the current XWikiContext
      * @return true if a new transaction has been created, false otherwise.
      * @throws XWikiException if an error occurs while retrieving or creating a new session and transaction.
      */
-    public boolean beginTransaction(SessionFactory sfactory, XWikiContext context)
-        throws XWikiException
+    public boolean beginTransaction(SessionFactory sfactory, XWikiContext context) throws XWikiException
     {
 
         Transaction transaction = getTransaction(context);
@@ -887,10 +1017,10 @@ public class XWikiHibernateBaseStore implements Initializable
     {
         endTransaction(context, commit);
     }
-    
+
     /**
      * Ends a transaction and close the session.
-     *
+     * 
      * @param context the current XWikiContext
      * @param commit should we commit or not
      */
@@ -1066,9 +1196,8 @@ public class XWikiHibernateBaseStore implements Initializable
     }
 
     /**
-     * Build a {@link Configuration} containing the provide mapping.
-     * Before 4.0M1, this function was called makeMapping. In 4.0M1, it enter in conflict with 
-     * {@link #makeMapping(String, String)}
+     * Build a {@link Configuration} containing the provide mapping. Before 4.0M1, this function was called makeMapping.
+     * In 4.0M1, it enter in conflict with {@link #makeMapping(String, String)}
      * 
      * @param className the classname of the class to map.
      * @param customMapping the custom mapping
@@ -1086,9 +1215,9 @@ public class XWikiHibernateBaseStore implements Initializable
     }
 
     /**
-     * Build a new XML string to define the provided mapping.
-     * Since 4.0M1, the ids are longs, and a confitionnal mapping is made for Oracle.
-     *
+     * Build a new XML string to define the provided mapping. Since 4.0M1, the ids are longs, and a confitionnal mapping
+     * is made for Oracle.
+     * 
      * @param className the name of the class to map.
      * @param customMapping the custom mapping
      * @return a XML definition for the given mapping, using XWO_ID column for the object id.
@@ -1096,19 +1225,16 @@ public class XWikiHibernateBaseStore implements Initializable
     protected String makeMapping(String className, String customMapping)
     {
         DatabaseProduct databaseProduct = getDatabaseProductName();
-        return new StringBuilder(2000)
-            .append("<?xml version=\"1.0\"?>\n" + "<!DOCTYPE hibernate-mapping PUBLIC\n")
+        return new StringBuilder(2000).append("<?xml version=\"1.0\"?>\n" + "<!DOCTYPE hibernate-mapping PUBLIC\n")
             .append("\t\"-//Hibernate/Hibernate Mapping DTD//EN\"\n")
             .append("\t\"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd\">\n")
-            .append("<hibernate-mapping>")
-            .append("<class entity-name=\"").append(className)
-            .append("\" table=\"").append(dynamicMappingTableName(className)).append("\">\n")
+            .append("<hibernate-mapping>").append("<class entity-name=\"").append(className).append("\" table=\"")
+            .append(dynamicMappingTableName(className)).append("\">\n")
             .append(" <id name=\"id\" type=\"long\" unsaved-value=\"any\">\n")
             .append("   <column name=\"XWO_ID\" not-null=\"true\" ")
             .append((databaseProduct == DatabaseProduct.ORACLE) ? "sql-type=\"integer\" " : "")
-            .append("/>\n   <generator class=\"assigned\" />\n")
-            .append(" </id>\n").append(customMapping).append("</class>\n</hibernate-mapping>")
-            .toString();
+            .append("/>\n   <generator class=\"assigned\" />\n").append(" </id>\n").append(customMapping)
+            .append("</class>\n</hibernate-mapping>").toString();
     }
 
     /**
@@ -1138,7 +1264,7 @@ public class XWikiHibernateBaseStore implements Initializable
      * @return {@link HibernateCallback#doInHibernate(Session)}
      * @throws XWikiException if any error
      * @deprecated since 4.0M1, use {@link #execute(XWikiContext, boolean, HibernateCallback)} or
-     *                          {@link #failSafeExecute(XWikiContext, boolean, HibernateCallback)}
+     *             {@link #failSafeExecute(XWikiContext, boolean, HibernateCallback)}
      */
     @Deprecated
     public <T> T execute(XWikiContext context, boolean bTransaction, boolean doCommit, HibernateCallback<T> cb)
@@ -1150,7 +1276,7 @@ public class XWikiHibernateBaseStore implements Initializable
     /**
      * Execute method for operations in hibernate in an independent session (but not closing the current one if any).
      * Never throw any error, but there is no warranty that the operation has been completed successfully.
-     *
+     * 
      * @param context - used everywhere.
      * @param doCommit - should store commit changes(if any), or rollback it.
      * @param cb - callback to execute
@@ -1177,15 +1303,14 @@ public class XWikiHibernateBaseStore implements Initializable
 
     /**
      * Execute method for operations in hibernate. spring like.
-     *
+     * 
      * @param context - used everywhere.
      * @param doCommit - should store commit changes(if any), or rollback it.
      * @param cb - callback to execute
      * @return {@link HibernateCallback#doInHibernate(Session)}
      * @throws XWikiException if any error
      */
-    public <T> T execute(XWikiContext context, boolean doCommit, HibernateCallback<T> cb)
-        throws XWikiException
+    public <T> T execute(XWikiContext context, boolean doCommit, HibernateCallback<T> cb) throws XWikiException
     {
         MonitorPlugin monitor = Util.getMonitorPlugin(context);
         boolean bTransaction = false;
@@ -1229,7 +1354,7 @@ public class XWikiHibernateBaseStore implements Initializable
 
     /**
      * Execute method for read-only operations in hibernate. spring like.
-     *
+     * 
      * @return {@link HibernateCallback#doInHibernate(Session)}
      * @param context the current XWikiContext
      * @param bTransaction this argument is unused
@@ -1237,7 +1362,7 @@ public class XWikiHibernateBaseStore implements Initializable
      * @throws XWikiException if any error
      * @see #execute(XWikiContext, boolean, HibernateCallback)
      * @deprecated since 4.0M1, use {@link #executeRead(XWikiContext, HibernateCallback)} or
-     *                          {@link #failSafeExecuteRead(XWikiContext, HibernateCallback)}
+     *             {@link #failSafeExecuteRead(XWikiContext, HibernateCallback)}
      */
     @Deprecated
     public <T> T executeRead(XWikiContext context, boolean bTransaction, HibernateCallback<T> cb) throws XWikiException
@@ -1246,9 +1371,9 @@ public class XWikiHibernateBaseStore implements Initializable
     }
 
     /**
-     * Execute hibernate read-only operation in a independent session (but not closing the current one if any).
-     * Never throw any error, but there is no warranty that the operation has been completed successfully.
-     *
+     * Execute hibernate read-only operation in a independent session (but not closing the current one if any). Never
+     * throw any error, but there is no warranty that the operation has been completed successfully.
+     * 
      * @param context the current XWikiContext
      * @param cb the callback to execute
      * @return {@link HibernateCallback#doInHibernate(Session)}, returns null if the callback throw an error.
@@ -1261,7 +1386,7 @@ public class XWikiHibernateBaseStore implements Initializable
 
     /**
      * Execute method for read-only operations in hibernate. spring like.
-     *
+     * 
      * @param context - used everywhere.
      * @param cb - callback to execute
      * @return {@link HibernateCallback#doInHibernate(Session)}
@@ -1275,7 +1400,7 @@ public class XWikiHibernateBaseStore implements Initializable
 
     /**
      * Execute method for read-write operations in hibernate. spring like.
-     *
+     * 
      * @param context the current XWikiContext
      * @param bTransaction this argument is unused
      * @param cb the callback to execute
@@ -1283,7 +1408,7 @@ public class XWikiHibernateBaseStore implements Initializable
      * @throws XWikiException if any error
      * @see #execute(XWikiContext, boolean, HibernateCallback)
      * @deprecated since 4.0M1, use {@link #executeWrite(XWikiContext, HibernateCallback)} or
-     *                          {@link #failSafeExecuteWrite(XWikiContext, HibernateCallback)}
+     *             {@link #failSafeExecuteWrite(XWikiContext, HibernateCallback)}
      */
     @Deprecated
     public <T> T executeWrite(XWikiContext context, boolean bTransaction, HibernateCallback<T> cb)
@@ -1293,9 +1418,9 @@ public class XWikiHibernateBaseStore implements Initializable
     }
 
     /**
-     * Execute hibernate read-only operation in a independent session (but not closing the current one if any).
-     * Never throw any error, but there is no warranty that the operation has been completed successfully.
-     *
+     * Execute hibernate read-only operation in a independent session (but not closing the current one if any). Never
+     * throw any error, but there is no warranty that the operation has been completed successfully.
+     * 
      * @param context the current XWikiContext
      * @param cb the callback to execute
      * @return {@link HibernateCallback#doInHibernate(Session)}
