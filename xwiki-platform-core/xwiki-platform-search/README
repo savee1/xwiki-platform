@@ -1,0 +1,60 @@
+README
+-----------------------------------------------
+
+1. Get the XWiki Enterprise, xwiki-enterprise-jetty-hsqldb. Tested on 3.5
+
+2. Extract it to some location.
+
+3. XWiki Enterprise 3.5 has lucene 3.4 libraries.Delete lucene-analyzer, lucene-core, lucene-queryparser of ver 3.4.0 from xwiki-enterprise-jetty-hsqldb-3.5-SNAPSHOT/webapps/xwiki/WEB-INF/lib            
+
+4. Download Solr from http://www.apache.org/dyn/closer.cgi/lucene/solr/3.5.0
+   Add the below jar files to lib.
+
+	apache-solr-core-3.5.0.jar
+	apache-solr-solrj-3.5.0.jar
+	apache-solr-velocity-3.5.0.jar
+	apache-solr-langid-3.5.0.jar
+
+5. Download Lucene from http://www.apache.org/dyn/closer.cgi/lucene/java/3.5.0
+   Add the below jar files to lib
+
+	lucene-analyzers-3.5.0.jar
+	lucene-core-3.5.0.jar
+	lucene-grouping-3.5.0.jar
+	lucene-highlighter-3.5.0.jar
+	lucene-queryparser-3.5.0.jar
+	lucene-spellchecker-3.5.0.jar
+	lucene-spatial-3.5.0.jar
+	lucene-memory-3.5.0.jar
+	lucene-misc-3.5.0.jar
+
+6. Add configuration to xwiki.cfg
+
+	#---------------------------------------
+	#  Solr Configuration
+	#
+
+	#List of allowed spaces seperated by comma
+	xwiki.solr.allowed.spaces=Sandbox
+
+	#List of allowed languages seperated by comma
+	xwiki.solr.allowed.languages=en,fr,es
+
+
+7. Add solr home as xwiki opts in start_wiki.sh
+
+    #For *nix - Add path to solr config. start_xwiki.sh
+    XWIKI_OPTS="$XWIKI_OPTS -Dsolr.solr.home=/home/path/to/solr"
+
+    # For Winodws - Add path to solr config. start_xwiki.bat
+    set XWIKI_OPTS=%XWIKI_OPTS% -Dsolr.solr.home=/home/path/to/solr"
+
+8. Build the code and copy xwiki-platform-search-api-3.5-SNAPSHOT.jar and xwiki-platform-search-api-3.5-SNAPSHOT.jar to the XWiki Eneterprise lib directory.
+
+
+9. Start the Server using start_xwiki.sh or start_xwiki.bat
+
+10. Create a page in Sandbox - SearchPage
+   Copy the content of https://gist.github.com/2295648
+
+11. Save and View the SearchPage, Start searching. 

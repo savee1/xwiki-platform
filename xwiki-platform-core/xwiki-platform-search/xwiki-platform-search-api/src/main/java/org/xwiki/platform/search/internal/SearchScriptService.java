@@ -17,10 +17,13 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.xwiki.platform.search;
+package org.xwiki.platform.search.internal;
+
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
@@ -28,14 +31,17 @@ import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Initializable;
 import org.xwiki.component.phase.InitializationException;
 import org.xwiki.configuration.ConfigurationSource;
+import org.xwiki.platform.search.SearchService;
 import org.xwiki.script.service.ScriptService;
 
 /**
- * Search script service.
+ * Search Service Implementation.
  * 
  * @version $Id$
  */
-@Component("search")
+@Component
+@Named("search")
+@Singleton
 public class SearchScriptService implements ScriptService, Initializable
 {
     /**
@@ -56,25 +62,29 @@ public class SearchScriptService implements ScriptService, Initializable
     private SearchService searchService;
 
     /**
-     * Congiruation source to fetch xwiki properties.
+     * Properties.
      */
     @Inject
     @Named("xwikiproperties")
     private ConfigurationSource configuration;
 
     /**
-     * Unique id which can be used to identify different component instances.
-     * @return id as a String.
+     * We could make the script service implement the full API defined in the SearchService interface and just have the
+     * methods delegate the method calls to the underlying searchService implementation.
+     * 
+     * @return id of the backend.
      */
+
     public String getID()
     {
         return searchService.getBackend();
     }
 
     /**
-     * Initialize the script service by retrieving the configured search backend. This can be tuned in the xwiki.cfg
-     * file by defining a specific backend to be used (i.e., the hint of the SearchService component that should be
-     * looked up)
+     * Initialize the script service by retrieving the configured search backend.
+     * 
+     * 
+     * @throws InitializationException - Exception is being thrown.
      */
     @Override
     public void initialize() throws InitializationException
@@ -88,10 +98,24 @@ public class SearchScriptService implements ScriptService, Initializable
                 searchService = componentManager.lookup(SearchService.class, backend);
             }
 
-            logger.info("Search service initialized using the {} backend", searchService.getBackend());
+            logger.warn("Search service initialized using the {} backend", searchService.getBackend());
+
+            // Index the documents
+            searchService.indexDocuments();
+
         } catch (Exception e) {
             throw new InitializationException("Unable to initialize the search script service", e);
         }
 
+    }
+
+    /**
+     * Query the documents.
+     * 
+     * @param query - The query to search.
+     */
+    public List<String> queryDocument(String query,String qfvalues)
+    {
+        return searchService.queryDocument(query,qfvalues);
     }
 }

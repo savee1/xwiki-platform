@@ -19,14 +19,41 @@
  */
 package org.xwiki.platform.search;
 
+import java.util.List;
+
 import org.xwiki.component.annotation.ComponentRole;
 
+/**
+ * Search service.
+ * 
+ * @version $Id$
+ */
 @ComponentRole
 public interface SearchService
 {
-    /*
-     * Here the exposed API could be the same of the one used for the Lucene Plugin {@link http://bit.ly/oJQGdG}
+    /**
+     * Get the search backend
+     * 
+     * @return search backend
      */
-
     String getBackend();
+
+    /**
+     * Index the documents.
+     */
+    void indexDocuments();
+
+    /**
+     * Reindex the docuements.
+     */
+    void reIndexDocuments();
+
+    /**
+     * Query the documents.
+     * 
+     * @param query - The query to search.
+     * @return status of the query
+     */
+    List<String> queryDocument(String query,String qfvalues);
+
 }
